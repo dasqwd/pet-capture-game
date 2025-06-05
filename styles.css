@@ -545,18 +545,25 @@ footer {
     }
     
     /* 地域选择适配 - 改为紧凑网格 */
-    .region-selector {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 8px;
-        margin-bottom: 15px;
-        max-height: none;
-        overflow: visible;
-    }
+  .region-selector {
+    display: grid !important; /* 强制覆盖可能的内联样式 */
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px;
+    margin: 10px 0;
+    overflow: visible;
+    max-height: none !important;
+  }
     
-    .region-card {
-        padding: 12px 8px;
-        font-size: 0.9rem;
-    }
+  .region-card {
+    min-height: 60px;
+    padding: 8px;
+    margin: 0 !important; /* 清除可能的外边距 */
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
     
     /* 宠物发现适配 */
     .pet-discovery-container {
@@ -630,15 +637,15 @@ footer {
 /* 小屏幕手机特别适配 */
 @media (max-width: 480px) {
     /* 地域选择改为3列更紧凑 */
-    .region-selector {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 6px;
-    }
+  .region-selector {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 8px;
+  }
     
-    .region-card {
-        padding: 8px 5px;
-        font-size: 0.8rem;
-    }
+  .region-card {
+    font-size: 0.75rem;
+    min-height: 50px;
+  }
     
     .status-item {
         min-width: 28%;
@@ -676,9 +683,9 @@ footer {
 
 /* 超小屏幕特殊处理 */
 @media (max-width: 360px) {
-    .region-selector {
-        grid-template-columns: repeat(2, 1fr);
-    }
+  .region-selector {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
     
     .region-card {
         font-size: 0.7rem;
