@@ -530,6 +530,24 @@ footer {
     .status-bar {
         width: 80px;
     }
+
+    .chat-header {
+        margin-bottom: 8px !important; /* 减少下方间距 */
+    }
+    
+    .chat-title {
+        margin: 5px 0 !important; /* 减少上下间距 */
+    }
+    
+    .pet-name {
+        font-size: 1.1rem !important; /* 缩小字体 */
+        padding: 4px 0 !important; /* 减少内边距 */
+    }
+    
+    .pet-name i.fas {
+        font-size: 0.9em !important; /* 缩小图标 */
+        margin-right: 5px !important; /* 调整图标间距 */
+    }
     
     /* 步骤容器适配 */
     .step-container {
@@ -678,6 +696,14 @@ footer {
         width: 35px;
         height: 35px;
         margin: 0 8px;
+    }
+
+    .pet-name {
+        font-size: 1rem !important;
+    }
+    
+    .chat-header {
+        margin-bottom: 5px !important;
     }
 }
 
