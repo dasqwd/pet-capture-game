@@ -371,7 +371,7 @@ body {
     padding: 15px;
     border-radius: 15px;
     margin-bottom: 20px;
-    height: 800px; /* 固定高度 */
+    height: 750px; /* 固定高度 */
     display: flex;
     flex-direction: column;
     background-size: cover;
