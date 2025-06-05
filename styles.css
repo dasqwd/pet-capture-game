@@ -492,51 +492,168 @@ footer {
     color: rgba(255, 255, 255, 0.7);
 }
 
-/* 响应式设计 */
+/* 基础响应式设置 */
 @media (max-width: 768px) {
-    .region-selector {
-        grid-template-columns: repeat(2, 1fr);
+    body {
+        overflow: hidden; /* 禁止页面滚动 */
+        padding: 10px;
     }
     
-    .step-container {
-        padding: 25px;
+    .container {
+        height: 100vh;
+        padding: 10px;
+        max-width: 100%;
     }
     
-    .step-title {
-        font-size: 1.8rem;
-    }
-    
+    /* 游戏头部适配 */
     .game-header {
         flex-direction: column;
-        gap: 15px;
+        padding: 10px;
+        margin-bottom: 10px;
+    }
+    
+    .game-title {
+        font-size: 1.8rem;
+        margin: 5px 0;
     }
     
     .status-container {
         width: 100%;
-        justify-content: space-around;
+        gap: 10px;
+        justify-content: space-between;
     }
     
-    .chat-title {
-        font-size: 1.6rem;
+    .status-item {
+        min-width: 30%;
     }
     
-    .avatar {
-        width: 50px;
-        height: 50px;
+    .status-bar {
+        width: 80px;
     }
-}
-
-@media (max-width: 480px) {
+    
+    /* 步骤容器适配 */
+    .step-container {
+        padding: 20px 15px;
+        height: calc(100vh - 100px);
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .step-title {
+        font-size: 1.5rem;
+        margin-bottom: 15px;
+    }
+    
+    /* 地域选择适配 */
     .region-selector {
         grid-template-columns: 1fr;
+        gap: 10px;
+        margin-bottom: 20px;
+        flex-grow: 1;
+        overflow-y: auto;
     }
     
+    .region-card {
+        padding: 15px 10px;
+    }
+    
+    /* 宠物发现适配 */
     .pet-preview {
         width: 200px;
         height: 200px;
+        margin: 10px auto;
+    }
+    
+    .pet-description {
+        padding: 15px;
+        margin-bottom: 15px;
+        flex-grow: 1;
+        overflow-y: auto;
+    }
+    
+    /* 聊天界面适配 */
+    #chat-interface {
+        height: calc(100vh - 100px);
+    }
+    
+    .pet-chat-container {
+        padding: 15px;
+        height: 100%;
     }
     
     .chat-messages {
-        height: 1000px; /* 移动端调整高度 */
+        height: calc(100% - 120px);
+        max-height: none;
+    }
+    
+    /* 输入区域适配 */
+    .chat-input {
+        margin-top: 10px;
+    }
+    
+    .chat-input input {
+        padding: 12px 15px;
+    }
+    
+    .chat-input button {
+        padding: 12px 20px;
+    }
+    
+    /* 按钮适配 */
+    .btn {
+        padding: 12px 25px;
+        font-size: 1rem;
+        margin-top: 15px;
+    }
+    
+    /* 命名输入适配 */
+    .name-input {
+        font-size: 1.2rem;
+        padding: 12px 20px;
+    }
+}
+
+/* 小屏幕手机特别适配 */
+@media (max-width: 480px) {
+    .status-item {
+        min-width: 28%;
+    }
+    
+    .status-value {
+        font-size: 1.2rem;
+    }
+    
+    .status-label {
+        font-size: 0.9rem;
+    }
+    
+    .pet-preview {
+        width: 150px;
+        height: 150px;
+    }
+    
+    .step-description {
+        font-size: 1rem;
+        margin-bottom: 20px;
+    }
+    
+    .chat-input input {
+        padding: 10px 12px;
+    }
+    
+    .chat-input button {
+        padding: 10px 15px;
+        margin-left: 8px;
+    }
+    
+    .message .content {
+        font-size: 1rem;
+        padding: 10px 15px;
+    }
+    
+    .avatar {
+        width: 40px;
+        height: 40px;
+        margin: 0 10px;
     }
 }
