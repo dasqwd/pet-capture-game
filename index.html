@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>灵伴奇缘 - AI宠物陪伴游戏</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #6a5acd;
+            --secondary-color: #9370db;
+            --accent-color: #ff7f50;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+            overflow: hidden;
+        }
+        
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            height: calc(100vh - 40px);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* 游戏头部区域 */
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 25px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            display: none; /* 初始隐藏 */
+        }
+        
+        .game-title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            background: linear-gradient(to right, #ff7e5f, #feb47b);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .pet-name {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #ffd700;
+            display: flex;
+            align-items: center;
+        }
+        
+        .pet-name i {
+            margin-right: 10px;
+            font-size: 1.8rem;
+        }
+        
+        .status-container {
+            display: flex;
+            gap: 25px;
+        }
+        
+        .status-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .status-label {
+            font-size: 1rem;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        .status-value {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #ffd700;
+        }
+        
+        .status-bar {
+            width: 100px;
+            height: 12px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+        
+        .status-fill {
+            height: 100%;
+            border-radius: 10px;
+        }
+        
+        .hunger-fill { background: var(--warning-color); }
+        .health-fill { background: var(--success-color); }
+        .exp-fill { background: var(--secondary-color); }
+        
+        /* 游戏流程容器 */
+        .game-flow {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        
+        /* 步骤容器 */
+        .step-container {
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+            transition: transform 0.5s ease, opacity 0.5s ease;
+            margin: 0 auto;
+        }
+        
+        /* 地域选择界面 */
+        #region-selection {
+            display: block;
+        }
+        
+        .step-title {
+            font-size: 2.2rem;
+            margin-bottom: 30px;
+            color: #ffd700;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .step-description {
+            font-size: 1.2rem;
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+        
+        .region-selector {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .region-card {
+            background: rgba(106, 90, 205, 0.3);
+            border: 2px solid rgba(147, 112, 219, 0.5);
+            border-radius: 15px;
+            padding: 25px 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .region-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(147, 112, 219, 0.4);
+            background: rgba(106, 90, 205, 0.5);
+        }
+        
+        .region-card.selected {
+            background: rgba(106, 90, 205, 0.7);
+            box-shadow: 0 0 20px rgba(147, 112, 219, 0.7);
+            border-color: #ff7f50;
+        }
+        
+        .region-icon {
+            font-size: 3.5rem;
+            margin-bottom: 15px;
+            color: #ffd700;
+        }
+        
+        .region-name {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .region-desc {
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+        
+        .btn {
+            padding: 15px 40px;
+            border: none;
+            border-radius: 50px;
+            background: var(--primary-color);
+            color: white;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-block;
+            margin-top: 20px;
+        }
+        
+        .btn:hover {
+            background: var(--secondary-color);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        /* 宠物发现界面 */
+        #pet-discovery {
+            display: none;
+        }
+        
+        .pet-preview {
+            width: 300px;
+            height: 300px;
+            margin: 0 auto 30px;
+            position: relative;
+        }
+        
+        .pet-outline {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 5px dashed rgba(255, 255, 255, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 5rem;
+            color: rgba(255, 255, 255, 0.3);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 0.5; }
+            50% { opacity: 0.8; }
+            100% { opacity: 0.5; }
+        }
+        
+        .pet-description {
+            background: rgba(30, 30, 50, 0.5);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            text-align: left;
+            font-size: 1.1rem;
+            line-height: 1.7;
+        }
+        
+        .pet-description h3 {
+            color: #ffd700;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        /* 命名界面 */
+        #naming-pet {
+            display: none;
+        }
+        
+        .name-input-container {
+            margin: 30px 0;
+        }
+        
+        .name-input {
+            padding: 15px 25px;
+            font-size: 1.5rem;
+            width: 100%;
+            max-width: 400px;
+            border: none;
+            border-radius: 50px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .name-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .generating-indicator {
+            margin-top: 30px;
+            display: none;
+        }
+        
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 5px solid rgba(255, 255, 255, 0.2);
+            border-top-color: var(--accent-color);
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* 聊天界面 */
+        #chat-interface {
+            display: none;
+            height: 100%;
+            width: 100%;
+            flex-direction: column;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        
+        .pet-chat-container {
+            flex-grow: 1;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            height: calc(100% - 50px);
+        }
+        
+        .chat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .chat-title {
+            font-size: 2rem;
+            font-weight: 600;
+            color: #ffd700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+        
+        .chat-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            height: 800px; /* 固定高度 */
+            display: flex;
+            flex-direction: column;
+            background-size: cover;
+            background-position: center;
+            background-blend-mode: overlay;
+            background-image: url('https://img.freepik.com/free-vector/cute-fox-with-cub-cartoon-vector-icon-illustration_138676-2247.jpg');
+        }
+        
+        .message {
+            display: flex;
+            margin-bottom: 20px;
+            max-width: 80%;
+        }
+        
+        .message.system {
+            align-self: flex-start;
+        }
+        
+        .message.user {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+        
+        .avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            overflow: hidden;
+            margin: 0 15px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .system .avatar {
+            background: linear-gradient(135deg, #6a5acd, #9370db);
+        }
+        
+        .user .avatar {
+            background: linear-gradient(135deg, #ff7f50, #ffb347);
+        }
+        
+        .content {
+            padding: 15px 20px;
+            border-radius: 20px;
+            line-height: 1.6;
+            font-size: 1.1rem;
+            position: relative;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .system .content {
+            background: rgba(106, 90, 205, 0.85);
+            border: 1px solid rgba(147, 112, 219, 0.5);
+            border-top-left-radius: 0;
+            margin-left: 10px;
+        }
+        
+        .user .content {
+            background: rgba(50, 115, 220, 0.85);
+            border: 1px solid rgba(50, 150, 250, 0.5);
+            border-top-right-radius: 0;
+            margin-right: 10px;
+            text-align: right;
+        }
+        
+        .chat-input-area {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .chat-input {
+            display: flex;
+        }
+        
+        .chat-input input {
+            flex-grow: 1;
+            padding: 15px 25px;
+            border: none;
+            border-radius: 50px;
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .chat-input input:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px var(--accent-color);
+        }
+        
+        .chat-input button {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 50px;
+            background: var(--primary-color);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-left: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .chat-input button:hover {
+            background: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+        
+        /* 页脚 */
+        footer {
+            text-align: center;
+            padding: 20px;
+            margin-top: 20px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .region-selector {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .step-container {
+                padding: 25px;
+            }
+            
+            .step-title {
+                font-size: 1.8rem;
+            }
+            
+            .game-header {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .status-container {
+                width: 100%;
+                justify-content: space-around;
+            }
+            
+            .chat-title {
+                font-size: 1.6rem;
+            }
+            
+            .avatar {
+                width: 50px;
+                height: 50px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .region-selector {
+                grid-template-columns: 1fr;
+            }
+            
+            .pet-preview {
+                width: 200px;
+                height: 200px;
+            }
+            
+            .chat-messages {
+                height: 1000px; /* 移动端调整高度 */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 游戏头部 - 只在聊天界面显示 -->
+        <div class="game-header">
+
+            <h1 class="game-title">灵伴奇缘</h1>
+            
+            <div class="status-container">
+                <div class="status-item">
+                    <div class="status-label">饥饿度</div>
+                    <div class="status-value">80%</div>
+                    <div class="status-bar">
+                        <div class="status-fill hunger-fill" style="width: 80%"></div>
+                    </div>
+                </div>
+                
+                <div class="status-item">
+                    <div class="status-label">生命值</div>
+                    <div class="status-value">95%</div>
+                    <div class="status-bar">
+                        <div class="status-fill health-fill" style="width: 95%"></div>
+                    </div>
+                </div>
+                
+                <div class="status-item">
+                    <div class="status-label">历练值</div>
+                    <div class="status-value">40%</div>
+                    <div class="status-bar">
+                        <div class="status-fill exp-fill" style="width: 40%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 游戏流程区域 -->
+        <div class="game-flow">
+            <!-- 步骤1：地域选择 -->
+            <div id="region-selection" class="step-container">
+                <h2 class="step-title">选择探索地域</h2>
+                <p class="step-description">
+                    不同的地域栖息着独特的灵宠，选择你想要探索的区域，<br>
+                    发现属于你的神奇伙伴！
+                </p>
+                
+                <div class="region-selector">
+                    <div class="region-card" data-region="mountain">
+                        <div class="region-icon">
+                            <i class="fas fa-mountain"></i>
+                        </div>
+                        <div class="region-name">昆仑山脉</div>
+                        <div class="region-desc">冰雪覆盖的神秘山脉，栖息着冰系灵宠</div>
+                    </div>
+                    
+                    <div class="region-card" data-region="forest">
+                        <div class="region-icon">
+                            <i class="fas fa-tree"></i>
+                        </div>
+                        <div class="region-name">翡翠森林</div>
+                        <div class="region-desc">生机盎然的古老森林，木系灵宠的家园</div>
+                    </div>
+                    
+                    <div class="region-card" data-region="volcano">
+                        <div class="region-icon">
+                            <i class="fas fa-fire"></i>
+                        </div>
+                        <div class="region-name">熔岩火山</div>
+                        <div class="region-desc">炽热活跃的火山地带，火系灵宠在此诞生</div>
+                    </div>
+                    
+                    <div class="region-card" data-region="ocean">
+                        <div class="region-icon">
+                            <i class="fas fa-water"></i>
+                        </div>
+                        <div class="region-name">无尽海洋</div>
+                        <div class="region-desc">深邃广阔的海洋世界，水系灵宠的乐园</div>
+                    </div>
+                    
+                    <div class="region-card" data-region="desert">
+                        <div class="region-icon">
+                            <i class="fas fa-sun"></i>
+                        </div>
+                        <div class="region-name">黄金沙漠</div>
+                        <div class="region-desc">炎热干燥的沙漠地带，土系灵宠的栖息地</div>
+                    </div>
+                    
+                    <div class="region-card" data-region="sky">
+                        <div class="region-icon">
+                            <i class="fas fa-cloud"></i>
+                        </div>
+                        <div class="region-name">天空之城</div>
+                        <div class="region-desc">悬浮在云端的秘境，风系灵宠在此翱翔</div>
+                    </div>
+                </div>
+                
+                <button id="explore-btn" class="btn" disabled>开始探索</button>
+            </div>
+            
+            <!-- 步骤2：宠物发现 -->
+            <div id="pet-discovery" class="step-container">
+                <h2 class="step-title">发现神秘灵宠</h2>
+                <p class="step-description">
+                    在<span id="region-name-display">昆仑山脉</span>的深处，你发现了一个神秘的灵宠身影...
+                </p>
+                
+                <div class="pet-preview">
+                    <div class="pet-outline">
+                        <i class="fas fa-question"></i>
+                    </div>
+                </div>
+                
+                <div class="pet-description">
+                    <h3>灵宠特征描述</h3>
+                    <p id="pet-description-text">
+                        这是一只体型娇小的灵宠，身披银蓝色毛发，在阳光下闪烁着冰晶般的光芒。
+                        它有一双深邃的冰蓝色眼睛，尾巴蓬松如云朵，末端点缀着几颗闪烁的冰晶。
+                        行动时会在身后留下一道淡淡的冰雾轨迹，性格温顺但警惕性高。
+                    </p>
+                </div>
+                
+                <button id="catch-btn" class="btn">尝试捕捉</button>
+            </div>
+            
+            <!-- 步骤3：命名环节 -->
+            <div id="naming-pet" class="step-container">
+                <h2 class="step-title">为你的灵宠命名</h2>
+                <p class="step-description">
+                    恭喜你成功捕捉到这只神秘的灵宠！<br>
+                    请为你的新伙伴起一个独特的名字：
+                </p>
+                
+                <div class="name-input-container">
+                    <input type="text" id="pet-name-input" class="name-input" placeholder="输入灵宠名称" maxlength="12">
+                    <button id="name-confirm-btn" class="btn">确认命名</button>
+                </div>
+                
+                <div class="generating-indicator" id="generating-indicator">
+                    <div class="loading-spinner"></div>
+                    <p>正在生成灵宠形象与动画，请稍候...</p>
+                </div>
+            </div>
+            
+            <!-- 步骤4：聊天界面 -->
+            <div id="chat-interface">
+                <div class="pet-chat-container">
+                    <div class="chat-header">
+                        <h3 class="chat-title">
+                                <div class="pet-name">
+                                    <i class="fas fa-paw"></i>
+                                    <span id="pet-name-display">未命名灵宠</span>
+                                </div>
+                        </h3>
+                    </div>
+                    
+                    <div class="chat-messages" id="messages">
+                        <div class="message system">
+                            <div class="avatar">
+                                <i class="fas fa-dragon"></i>
+                            </div>
+                            <div class="content">
+                                👋 你好，主人！我是你的灵宠伙伴<span id="pet-name-chat">冰晶</span>，<br>
+                                感谢你为我取了这个名字！<br>
+                                我会一直陪伴你、保护你！<br>
+                                当我饿了或者受伤的时候，请记得照顾我哦～<br>
+                                让我们一起踏上奇妙的冒险旅程吧！
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="chat-input-area">
+                        <div class="chat-input">
+                            <input type="text" id="user-input" placeholder="和你的灵宠对话...">
+                            <button id="send-btn">发送 <i class="fas fa-paper-plane"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 页脚 -->
+        <footer>
+            <p>© 2025 灵伴奇缘 - AI宠物陪伴游戏 | 李鹏程作品</p>
+        </footer>
+    </div>
+
+    <script>
+        // 游戏状态
+        const gameState = {
+            currentStep: 'region-selection',
+            selectedRegion: null,
+            petDescription: "",
+            petName: "",
+            petImage: null,
+            petVideo: null
+        };
+        
+        // 地域描述数据
+        const regionData = {
+            mountain: {
+                name: "昆仑山脉",
+                description: "冰雪覆盖的神秘山脉，栖息着冰系灵宠",
+                icon: "fa-mountain",
+                pets: [
+                    "这是一只体型娇小的灵宠，身披银蓝色毛发，在阳光下闪烁着冰晶般的光芒。它有一双深邃的冰蓝色眼睛，尾巴蓬松如云朵，末端点缀着几颗闪烁的冰晶。行动时会在身后留下一道淡淡的冰雾轨迹，性格温顺但警惕性高。",
+                    "一只优雅的冰晶凤凰，翅膀由无数冰棱组成，飞行时洒下闪烁的冰晶。它的鸣叫声清脆如铃，羽毛在月光下呈现淡蓝色光泽。性格高傲但忠诚，只认可真正强大的主人。",
+                    "毛茸茸的雪域灵狐，拥有三根蓬松的尾巴，每根尾巴末端都有一颗闪烁的冰珠。眼睛呈琥珀色，能在暴风雪中看清方向。喜欢在雪地里打滚，性格活泼调皮。"
+                ]
+            },
+            forest: {
+                name: "翡翠森林",
+                description: "生机盎然的古老森林，木系灵宠的家园",
+                icon: "fa-tree",
+                pets: [
+                    "一只翠绿色的森林精灵，翅膀如树叶般透明，身体由藤蔓和花朵组成。它散发着淡淡的花香，能够与植物交流，引导森林的生长。性格温和善良，治愈系灵宠。",
+                    "体型小巧的橡果松鼠，毛皮呈深棕色，尾巴蓬松如羽毛。它的脸颊能储存魔力橡果，眼睛闪烁着智慧的光芒。行动敏捷，喜欢收集闪亮的小物件，性格机警好奇。",
+                    "神秘的森林守护者，鹿角上生长着发光的苔藓和花朵，四蹄踏过之处会绽放鲜花。眼睛如翡翠般碧绿，能看透森林中的一切秘密。性格庄严但温柔，保护着森林的平衡。"
+                ]
+            },
+            volcano: {
+                name: "熔岩火山",
+                description: "炽热活跃的火山地带，火系灵宠在此诞生",
+                icon: "fa-fire",
+                pets: [
+                    "一只活泼的火焰蜥蜴，鳞片如熔岩般红黑相间，尾巴末端燃烧着永不熄灭的火焰。眼睛如燃烧的煤炭，能在岩浆中自由游动。性格热情奔放，有时会不小心点燃周围物品。",
+                    "威严的熔岩巨龟，背甲由冷却的火山岩构成，缝隙中透出橙红色的光芒。行动缓慢但力量巨大，喷吐的火焰能融化岩石。性格沉稳可靠，是值得信赖的伙伴。",
+                    "优雅的火凤凰雏鸟，羽毛如流动的火焰，飞行时洒下火星。鸣叫声清脆悦耳，能治愈同伴的灼伤。性格高贵但亲近主人，随着成长火焰会越来越旺盛。"
+                ]
+            }
+        };
+        
+        // 初始化游戏
+        document.addEventListener('DOMContentLoaded', function() {
+            // 地域选择
+            const regionCards = document.querySelectorAll('.region-card');
+            const exploreBtn = document.getElementById('explore-btn');
+            
+            regionCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    // 移除之前的选择
+                    regionCards.forEach(c => c.classList.remove('selected'));
+                    
+                    // 设置当前选择
+                    this.classList.add('selected');
+                    const region = this.dataset.region;
+                    gameState.selectedRegion = region;
+                    
+                    // 启用探索按钮
+                    exploreBtn.disabled = false;
+                });
+            });
+            
+            // 开始探索
+            exploreBtn.addEventListener('click', function() {
+                showStep('pet-discovery');
+                
+                // 显示区域名称
+                document.getElementById('region-name-display').textContent = 
+                    regionData[gameState.selectedRegion].name;
+                
+                // 随机选择一个宠物描述
+                const pets = regionData[gameState.selectedRegion].pets;
+                const randomPet = pets[Math.floor(Math.random() * pets.length)];
+                document.getElementById('pet-description-text').textContent = randomPet;
+                gameState.petDescription = randomPet;
+            });
+            
+            // 尝试捕捉
+            document.getElementById('catch-btn').addEventListener('click', function() {
+                showStep('naming-pet');
+            });
+            
+            // 命名确认
+            document.getElementById('name-confirm-btn').addEventListener('click', function() {
+                const nameInput = document.getElementById('pet-name-input');
+                const petName = nameInput.value.trim();
+                
+                if (petName.length < 2 || petName.length > 12) {
+                    alert("请输入2-12个字符的灵宠名称");
+                    return;
+                }
+                
+                gameState.petName = petName;
+                
+                // 显示生成指示器
+                const generatingIndicator = document.getElementById('generating-indicator');
+                generatingIndicator.style.display = 'block';
+                
+                // 更新聊天界面中的宠物名称
+                document.getElementById('pet-name-display').textContent = petName;
+                document.getElementById('pet-name-chat').textContent = petName;
+                
+                // 模拟生成过程
+                setTimeout(() => {
+                    // 显示聊天界面
+                    showStep('chat-interface');
+                    
+                    // 显示游戏头部
+                    document.querySelector('.game-header').style.display = 'flex';
+                    
+                    // 设置聊天背景（实际应用中替换为生成的宠物图像）
+                    document.querySelector('.chat-messages').style.backgroundImage = 
+                        "url('https://img.freepik.com/free-vector/cute-fox-with-cub-cartoon-vector-icon-illustration_138676-2247.jpg')";
+                    document.querySelector('.chat-messages').style.backgroundSize = 'cover';
+                    document.querySelector('.chat-messages').style.backgroundBlendMode = 'overlay';
+                }, 3000);
+            });
+            
+            // 发送消息
+            const sendBtn = document.getElementById('send-btn');
+            const userInput = document.getElementById('user-input');
+            
+            sendBtn.addEventListener('click', sendMessage);
+            userInput.addEventListener('keypress', function(e) {
+                if(e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+            
+            function sendMessage() {
+                const message = userInput.value.trim();
+                if (message) {
+                    // 添加用户消息
+                    const messages = document.getElementById('messages');
+                    const userMessage = document.createElement('div');
+                    userMessage.className = 'message user';
+                    userMessage.innerHTML = `
+                        <div class="avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="content">
+                            ${message}
+                        </div>
+                    `;
+                    messages.appendChild(userMessage);
+                    
+                    // 模拟AI回复
+                    setTimeout(() => {
+                        const aiMessage = document.createElement('div');
+                        aiMessage.className = 'message system';
+                        aiMessage.innerHTML = `
+                            <div class="avatar">
+                                <i class="fas fa-dragon"></i>
+                            </div>
+                            <div class="content">
+                                主人，${getRandomResponse()}
+                            </div>
+                        `;
+                        messages.appendChild(aiMessage);
+                        messages.scrollTop = messages.scrollHeight;
+                    }, 1000);
+                    
+                    // 清空输入框
+                    userInput.value = '';
+                }
+            }
+            
+            function getRandomResponse() {
+                const responses = [
+                    "这个问题很有趣！作为灵宠，我可以告诉你很多关于灵界的事情。",
+                    "我有点饿了，主人能给我找点吃的吗？",
+                    "我感受到你今天的情绪很好，有什么开心的事要分享吗？",
+                    "在昆仑山脉时，我学会了如何控制冰雪之力，想看看我的能力吗？",
+                    "今天天气真好，适合一起出去探险！",
+                    "主人给我取的名字真好听，我太喜欢了！",
+                    "我感觉到附近有强大的灵力波动，可能有其他灵宠在附近。",
+                    "我的历练值提升了！感谢主人的陪伴和照顾。",
+                    "你是我遇到过最好的主人！我会一直守护你的。",
+                    "在灵宠世界里，我们通过心灵感应交流，就像我们现在这样。"
+                ];
+                return responses[Math.floor(Math.random() * responses.length)];
+            }
+        });
+        
+        // 显示指定步骤
+        function showStep(stepId) {
+            // 隐藏所有步骤
+            document.getElementById('region-selection').style.display = 'none';
+            document.getElementById('pet-discovery').style.display = 'none';
+            document.getElementById('naming-pet').style.display = 'none';
+            document.getElementById('chat-interface').style.display = 'none';
+            
+            // 显示当前步骤
+            document.getElementById(stepId).style.display = stepId === 'chat-interface' ? 'flex' : 'block';
+            gameState.currentStep = stepId;
+        }
+    </script>
+</body>
+</html>
