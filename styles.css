@@ -1,0 +1,542 @@
+:root {
+    --primary-color: #6a5acd;
+    --secondary-color: #9370db;
+    --accent-color: #ff7f50;
+    --light-color: #f8f9fa;
+    --dark-color: #343a40;
+    --success-color: #28a745;
+    --warning-color: #ffc107;
+    --danger-color: #dc3545;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+    color: #fff;
+    min-height: 100vh;
+    padding: 20px;
+    overflow: hidden;
+}
+
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    height: calc(100vh - 40px);
+    display: flex;
+    flex-direction: column;
+}
+
+/* 游戏头部区域 */
+.game-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 25px;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 15px;
+    margin-bottom: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    display: none; /* 初始隐藏 */
+}
+
+.game-title {
+    font-size: 2.5rem;
+    font-weight: bold;
+    background: linear-gradient(to right, #ff7e5f, #feb47b);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.pet-name {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #ffd700;
+    display: flex;
+    align-items: center;
+}
+
+.pet-name i {
+    margin-right: 10px;
+    font-size: 1.8rem;
+}
+
+.status-container {
+    display: flex;
+    gap: 25px;
+}
+
+.status-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.status-label {
+    font-size: 1rem;
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+.status-value {
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: #ffd700;
+}
+
+.status-bar {
+    width: 100px;
+    height: 12px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-top: 5px;
+}
+
+.status-fill {
+    height: 100%;
+    border-radius: 10px;
+}
+
+.hunger-fill { background: var(--warning-color); }
+.health-fill { background: var(--success-color); }
+.exp-fill { background: var(--secondary-color); }
+
+/* 游戏流程容器 */
+.game-flow {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+/* 步骤容器 */
+.step-container {
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    max-width: 800px;
+    width: 100%;
+    text-align: center;
+    transition: transform 0.5s ease, opacity 0.5s ease;
+    margin: 0 auto;
+}
+
+/* 地域选择界面 */
+#region-selection {
+    display: block;
+}
+
+.step-title {
+    font-size: 2.2rem;
+    margin-bottom: 30px;
+    color: #ffd700;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.step-description {
+    font-size: 1.2rem;
+    margin-bottom: 40px;
+    line-height: 1.6;
+}
+
+.region-selector {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 40px;
+}
+
+.region-card {
+    background: rgba(106, 90, 205, 0.3);
+    border: 2px solid rgba(147, 112, 219, 0.5);
+    border-radius: 15px;
+    padding: 25px 15px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.region-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(147, 112, 219, 0.4);
+    background: rgba(106, 90, 205, 0.5);
+}
+
+.region-card.selected {
+    background: rgba(106, 90, 205, 0.7);
+    box-shadow: 0 0 20px rgba(147, 112, 219, 0.7);
+    border-color: #ff7f50;
+}
+
+.region-icon {
+    font-size: 3.5rem;
+    margin-bottom: 15px;
+    color: #ffd700;
+}
+
+.region-name {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.region-desc {
+    font-size: 0.95rem;
+    opacity: 0.9;
+}
+
+.btn {
+    padding: 15px 40px;
+    border: none;
+    border-radius: 50px;
+    background: var(--primary-color);
+    color: white;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: inline-block;
+    margin-top: 20px;
+}
+
+.btn:hover {
+    background: var(--secondary-color);
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.btn:disabled {
+    background: #666;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* 宠物发现界面 */
+#pet-discovery {
+    display: none;
+}
+
+.pet-preview {
+    width: 300px;
+    height: 300px;
+    margin: 0 auto 30px;
+    position: relative;
+}
+
+.pet-outline {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    border: 5px dashed rgba(255, 255, 255, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 5rem;
+    color: rgba(255, 255, 255, 0.3);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 0.5; }
+    50% { opacity: 0.8; }
+    100% { opacity: 0.5; }
+}
+
+.pet-description {
+    background: rgba(30, 30, 50, 0.5);
+    padding: 25px;
+    border-radius: 15px;
+    margin-bottom: 30px;
+    text-align: left;
+    font-size: 1.1rem;
+    line-height: 1.7;
+}
+
+.pet-description h3 {
+    color: #ffd700;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+/* 命名界面 */
+#naming-pet {
+    display: none;
+}
+
+.name-input-container {
+    margin: 30px 0;
+}
+
+.name-input {
+    padding: 15px 25px;
+    font-size: 1.5rem;
+    width: 100%;
+    max-width: 400px;
+    border: none;
+    border-radius: 50px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.name-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.generating-indicator {
+    margin-top: 30px;
+    display: none;
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 5px solid rgba(255, 255, 255, 0.2);
+    border-top-color: var(--accent-color);
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* 聊天界面 */
+#chat-interface {
+    display: none;
+    height: 100%;
+    width: 100%;
+    flex-direction: column;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.pet-chat-container {
+    flex-grow: 1;
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+    height: calc(100% - 50px);
+}
+
+.chat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.chat-title {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #ffd700;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+.chat-messages {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 15px;
+    border-radius: 15px;
+    margin-bottom: 20px;
+    height: 800px; /* 固定高度 */
+    display: flex;
+    flex-direction: column;
+    background-size: cover;
+    background-position: center;
+    background-blend-mode: overlay;
+    background-image: url('https://img.freepik.com/free-vector/cute-fox-with-cub-cartoon-vector-icon-illustration_138676-2247.jpg');
+}
+
+.message {
+    display: flex;
+    margin-bottom: 20px;
+    max-width: 80%;
+}
+
+.message.system {
+    align-self: flex-start;
+}
+
+.message.user {
+    align-self: flex-end;
+    flex-direction: row-reverse;
+}
+
+.avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin: 0 15px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.system .avatar {
+    background: linear-gradient(135deg, #6a5acd, #9370db);
+}
+
+.user .avatar {
+    background: linear-gradient(135deg, #ff7f50, #ffb347);
+}
+
+.content {
+    padding: 15px 20px;
+    border-radius: 20px;
+    line-height: 1.6;
+    font-size: 1.1rem;
+    position: relative;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.system .content {
+    background: rgba(106, 90, 205, 0.85);
+    border: 1px solid rgba(147, 112, 219, 0.5);
+    border-top-left-radius: 0;
+    margin-left: 10px;
+}
+
+.user .content {
+    background: rgba(50, 115, 220, 0.85);
+    border: 1px solid rgba(50, 150, 250, 0.5);
+    border-top-right-radius: 0;
+    margin-right: 10px;
+    text-align: right;
+}
+
+.chat-input-area {
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-input {
+    display: flex;
+}
+
+.chat-input input {
+    flex-grow: 1;
+    padding: 15px 25px;
+    border: none;
+    border-radius: 50px;
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+    font-size: 1.1rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.chat-input input:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--accent-color);
+}
+
+.chat-input button {
+    padding: 15px 30px;
+    border: none;
+    border-radius: 50px;
+    background: var(--primary-color);
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-left: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.chat-input button:hover {
+    background: var(--secondary-color);
+    transform: translateY(-2px);
+}
+
+/* 页脚 */
+footer {
+    text-align: center;
+    padding: 20px;
+    margin-top: 20px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .region-selector {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .step-container {
+        padding: 25px;
+    }
+    
+    .step-title {
+        font-size: 1.8rem;
+    }
+    
+    .game-header {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .status-container {
+        width: 100%;
+        justify-content: space-around;
+    }
+    
+    .chat-title {
+        font-size: 1.6rem;
+    }
+    
+    .avatar {
+        width: 50px;
+        height: 50px;
+    }
+}
+
+@media (max-width: 480px) {
+    .region-selector {
+        grid-template-columns: 1fr;
+    }
+    
+    .pet-preview {
+        width: 200px;
+        height: 200px;
+    }
+    
+    .chat-messages {
+        height: 1000px; /* 移动端调整高度 */
+    }
+}
