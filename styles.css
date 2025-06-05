@@ -533,7 +533,7 @@ footer {
     
     /* 步骤容器适配 */
     .step-container {
-        padding: 20px 15px;
+        padding: 15px;
         height: calc(100vh - 100px);
         display: flex;
         flex-direction: column;
@@ -541,119 +541,146 @@ footer {
     
     .step-title {
         font-size: 1.5rem;
-        margin-bottom: 15px;
+        margin-bottom: 10px;
     }
     
-    /* 地域选择适配 */
+    /* 地域选择适配 - 改为紧凑网格 */
     .region-selector {
-        grid-template-columns: 1fr;
-        gap: 10px;
-        margin-bottom: 20px;
-        flex-grow: 1;
-        overflow-y: auto;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        margin-bottom: 15px;
+        max-height: none;
+        overflow: visible;
     }
     
     .region-card {
-        padding: 15px 10px;
+        padding: 12px 8px;
+        font-size: 0.9rem;
     }
     
     /* 宠物发现适配 */
-    .pet-preview {
-        width: 200px;
-        height: 200px;
-        margin: 10px auto;
-    }
-    
-    .pet-description {
-        padding: 15px;
-        margin-bottom: 15px;
-        flex-grow: 1;
-        overflow-y: auto;
-    }
-    
-    /* 聊天界面适配 */
-    #chat-interface {
-        height: calc(100vh - 100px);
-    }
-    
-    .pet-chat-container {
-        padding: 15px;
+    .pet-discovery-container {
+        display: flex;
+        flex-direction: column;
         height: 100%;
-    }
-    
-    .chat-messages {
-        height: calc(100% - 120px);
-        max-height: none;
-    }
-    
-    /* 输入区域适配 */
-    .chat-input {
-        margin-top: 10px;
-    }
-    
-    .chat-input input {
-        padding: 12px 15px;
-    }
-    
-    .chat-input button {
-        padding: 12px 20px;
-    }
-    
-    /* 按钮适配 */
-    .btn {
-        padding: 12px 25px;
-        font-size: 1rem;
-        margin-top: 15px;
-    }
-    
-    /* 命名输入适配 */
-    .name-input {
-        font-size: 1.2rem;
-        padding: 12px 20px;
-    }
-}
-
-/* 小屏幕手机特别适配 */
-@media (max-width: 480px) {
-    .status-item {
-        min-width: 28%;
-    }
-    
-    .status-value {
-        font-size: 1.2rem;
-    }
-    
-    .status-label {
-        font-size: 0.9rem;
     }
     
     .pet-preview {
         width: 150px;
         height: 150px;
+        margin: 5px auto;
     }
     
-    .step-description {
-        font-size: 1rem;
-        margin-bottom: 20px;
+    .pet-description {
+        padding: 10px;
+        margin: 10px 0;
+        flex-grow: 1;
+        overflow-y: auto;
+        max-height: 40vh;
+    }
+    
+    /* 聊天界面完整显示适配 */
+    #chat-interface {
+        height: calc(100vh - 100px);
+        padding: 10px;
+    }
+    
+    .pet-chat-container {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .chat-messages {
+        height: calc(100% - 70px);
+        max-height: none;
+        overflow-y: auto;
+    }
+    
+    /* 输入区域适配 */
+    .chat-input {
+        margin-top: 10px;
+        height: 50px;
     }
     
     .chat-input input {
-        padding: 10px 12px;
+        padding: 8px 12px;
+        height: 100%;
     }
     
     .chat-input button {
+        padding: 0 15px;
+        height: 100%;
+    }
+    
+    /* 按钮适配 */
+    .btn {
+        padding: 10px 20px;
+        font-size: 1rem;
+        margin-top: 10px;
+    }
+    
+    /* 命名输入适配 */
+    .name-input {
+        font-size: 1.1rem;
         padding: 10px 15px;
-        margin-left: 8px;
+    }
+}
+
+/* 小屏幕手机特别适配 */
+@media (max-width: 480px) {
+    /* 地域选择改为3列更紧凑 */
+    .region-selector {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+    }
+    
+    .region-card {
+        padding: 8px 5px;
+        font-size: 0.8rem;
+    }
+    
+    .status-item {
+        min-width: 28%;
+    }
+    
+    .status-value {
+        font-size: 1.1rem;
+    }
+    
+    .status-label {
+        font-size: 0.8rem;
+    }
+    
+    .pet-preview {
+        width: 120px;
+        height: 120px;
+    }
+    
+    .step-description {
+        font-size: 0.9rem;
+        margin-bottom: 15px;
     }
     
     .message .content {
-        font-size: 1rem;
-        padding: 10px 15px;
+        font-size: 0.9rem;
+        padding: 8px 12px;
     }
     
     .avatar {
-        width: 40px;
-        height: 40px;
-        margin: 0 10px;
+        width: 35px;
+        height: 35px;
+        margin: 0 8px;
+    }
+}
+
+/* 超小屏幕特殊处理 */
+@media (max-width: 360px) {
+    .region-selector {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .region-card {
+        font-size: 0.7rem;
     }
 }
