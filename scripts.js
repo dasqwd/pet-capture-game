@@ -1,6 +1,6 @@
 // Coze API配置
 const cozeConfig = {
-  token: "pat_x8X38MRHfPsV01gD6aHnlJBS379WjiQRe21suebBgKdwktJVPpP1qjTuRR0NFXu4",
+  token: "pat_itmm8s1JXfXgxjNF7AV1cNQIL8aQGyLTGTacltjydxZpkhlCz9NowxvPLwODmffx",
   botId: "7504275160636325942",
   apiUrl: "https://api.coze.cn/open_api/v2/chat"
 };
