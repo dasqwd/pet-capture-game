@@ -522,98 +522,93 @@ footer {
 
 /* 移动端 - 简洁图标方案 */
 @media (max-width: 768px) {
-  /* 地域选择容器 - 严格2列3行网格 */
-  .region-selector {
-    display: grid !important;
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    grid-template-rows: repeat(3, minmax(100px, 1fr)) !important;
-    gap: 10px !important;
-    padding: 5px !important;
-    margin: 0 auto 15px !important;
-    width: 100% !important;
-    height: auto !important;
-  }
-
-  /* 地域卡片优化 */
-  .region-card {
-    min-height: 0 !important;
-    height: 100% !important;
-    padding: 8px 5px !important;
-    margin: 0 !important;
+  /* 步骤容器优化 */
+  #pet-discovery.step-container {
+    padding: 15px !important;
+    height: calc(100vh - 20px) !important;
     display: flex !important;
     flex-direction: column !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    background: rgba(106, 90, 205, 0.25) !important;
-    border: 1px solid rgba(147, 112, 219, 0.3) !important;
-    border-radius: 12px !important;
-    transition: all 0.2s ease !important;
-  }
-
-  /* 图标优化 */
-  .region-icon {
-    font-size: 1.8rem !important;
-    margin: 0 auto 3px !important;
-    color: #ffd700 !important;
-    text-align: center !important;
-    width: 100% !important;
-  }
-
-  /* 名称优化 */
-  .region-name {
-    font-size: 0.85rem !important;
-    text-align: center !important;
-    margin: 3px 0 !important;
-    line-height: 1.2 !important;
-    font-weight: 600 !important;
-    padding: 0 2px !important;
-    width: 100% !important;
-    white-space: nowrap !important;
     overflow: hidden !important;
-    text-overflow: ellipsis !important;
+  }
+
+  /* 标题优化 */
+  #pet-discovery .step-title {
+    font-size: 1.5rem !important;
+    margin-bottom: 10px !important;
   }
 
   /* 描述文本优化 */
-  .region-desc {
-    font-size: 0.65rem !important;
-    line-height: 1.3 !important;
-    display: -webkit-box !important;
-    -webkit-line-clamp: 2 !important;
-    -webkit-box-orient: vertical !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    color: rgba(255,255,255,0.7) !important;
-    margin-top: auto !important;
-    padding: 3px 5px 0 !important;
-    width: 100% !important;
-    text-align: center !important;
-    border-top: 1px dashed rgba(255,255,255,0.15) !important;
+  #pet-discovery .step-description {
+    font-size: 1rem !important;
+    margin-bottom: 15px !important;
+    line-height: 1.4 !important;
   }
 
-  /* 选中状态优化 */
-  .region-card.selected {
-    background: rgba(106, 90, 205, 0.4) !important;
-    box-shadow: 0 0 0 2px var(--accent-color) !important;
-    transform: scale(0.98) !important;
+  /* 宠物预览区域优化 */
+  .pet-preview {
+    width: 180px !important;
+    height: 180px !important;
+    margin: 0 auto 15px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .pet-outline {
+    width: 100% !important;
+    height: 100% !important;
+    font-size: 3.5rem !important;
+    border-width: 3px !important;
+  }
+
+  /* 宠物描述区域优化 */
+  .pet-description {
+    flex-grow: 1 !important;
+    padding: 15px !important;
+    margin-bottom: 15px !important;
+    max-height: 30vh !important;
+    overflow-y: auto !important;
+  }
+
+  .pet-description h3 {
+    font-size: 1.2rem !important;
+    margin-bottom: 10px !important;
+  }
+
+  #pet-description-text {
+    font-size: 0.9rem !important;
+    line-height: 1.5 !important;
+  }
+
+  /* 捕捉按钮优化 */
+  #catch-btn {
+    padding: 12px 25px !important;
+    font-size: 1rem !important;
+    margin: 10px auto !important;
+    width: 80% !important;
+    max-width: 200px !important;
   }
 }
 
-/* 超小屏幕优化 */
+/* 超小屏幕额外优化 */
 @media (max-width: 480px) {
-  .region-selector {
-    grid-template-rows: repeat(3, minmax(90px, 1fr)) !important;
+  #pet-discovery.step-container {
+    padding: 10px !important;
   }
-  
-  .region-icon {
-    font-size: 1.5rem !important;
+
+  .pet-preview {
+    width: 150px !important;
+    height: 150px !important;
   }
-  
-  .region-name {
-    font-size: 0.75rem !important;
+
+  .pet-outline {
+    font-size: 3rem !important;
   }
-  
-  .region-desc {
-    font-size: 0.6rem !important;
-    -webkit-line-clamp: 1 !important; /* 超小屏只显示1行描述 */
+
+  .pet-description {
+    padding: 10px !important;
+    max-height: 25vh !important;
+  }
+
+  #catch-btn {
+    padding: 10px 20px !important;
   }
 }
