@@ -567,15 +567,4 @@ footer {
         height: 1000px; /* 移动端调整高度 */
     }
 
-      .region-card {
-    min-height: 70px;
-  }
-  
-  .region-icon {
-    font-size: 1.5rem;
-  }
-  
-  .region-name {
-    font-size: 0.7rem;
-  }
 }
