@@ -16,6 +16,7 @@
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
+
 body {
     background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
     background-size: 400% 400%;
@@ -484,6 +485,33 @@ body {
     transform: translateY(-2px);
 }
 
+/* 加载动画 */
+.loading-dots {
+    display: inline-flex;
+    align-items: center;
+    height: 1em;
+}
+
+.loading-dots span {
+    animation: blink 1.4s infinite both;
+    font-size: 1.5rem;
+    margin: 0 2px;
+}
+
+.loading-dots span:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.loading-dots span:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes blink {
+    0% { opacity: 0.2; }
+    20% { opacity: 1; }
+    100% { opacity: 0.2; }
+}
+
 /* 页脚 */
 footer {
     text-align: center;
@@ -492,228 +520,99 @@ footer {
     color: rgba(255, 255, 255, 0.7);
 }
 
-/* 基础响应式设置 */
+/* 响应式设计 */
 @media (max-width: 768px) {
-    body {
-        overflow: hidden; /* 禁止页面滚动 */
-        padding: 10px;
-    }
-    
-    .container {
-        height: 100vh;
-        padding: 10px;
-        max-width: 100%;
-    }
-    
-    /* 游戏头部适配 */
-    .game-header {
-        flex-direction: column;
-        padding: 10px;
-        margin-bottom: 10px;
-    }
-    
-    .game-title {
-        font-size: 1.8rem;
-        margin: 5px 0;
-    }
-    
-    .status-container {
-        width: 100%;
-        gap: 10px;
-        justify-content: space-between;
-    }
-    
-    .status-item {
-        min-width: 30%;
-    }
-    
-    .status-bar {
-        width: 80px;
-    }
+  .region-selector {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr); /* 2列布局 */
+    grid-template-rows: repeat(3, auto); /* 3行布局 */
+    gap: 8px;
+    margin: 0 auto;
+    max-width: 100%;
+    padding: 5px;
+  }
 
-    .chat-header {
-        margin-bottom: 8px !important; /* 减少下方间距 */
-    }
+    .region-card {
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 5px !important;
+    margin: 0 !important;
+    min-height: 80px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.1);
+  }
+    .region-icon {
+    font-size: 1.8rem;
+    margin-bottom: 5px;
+  }
+  
+  .region-name {
+    font-size: 0.75rem;
+    text-align: center;
+    line-height: 1.2;
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* 限制2行文字 */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .region-description {
+    display: none !important; /* 隐藏描述 */
+  }
     
-    .chat-title {
-        margin: 5px 0 !important; /* 减少上下间距 */
-    }
-    
-    .pet-name {
-        font-size: 1.1rem !important; /* 缩小字体 */
-        padding: 4px 0 !important; /* 减少内边距 */
-    }
-    
-    .pet-name i.fas {
-        font-size: 0.9em !important; /* 缩小图标 */
-        margin-right: 5px !important; /* 调整图标间距 */
-    }
-    
-    /* 步骤容器适配 */
     .step-container {
-        padding: 15px;
-        height: calc(100vh - 100px);
-        display: flex;
-        flex-direction: column;
+        padding: 25px;
     }
     
     .step-title {
         font-size: 1.5rem;
-        margin-bottom: 10px;
     }
-    
-    /* 地域选择适配 - 改为紧凑网格 */
-  .region-selector {
-    display: grid !important; /* 强制覆盖可能的内联样式 */
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 10px;
-    margin: 10px 0;
-    overflow: visible;
-    max-height: none !important;
-  }
-    
-  .region-card {
-    min-height: 60px;
-    padding: 8px;
-    margin: 0 !important; /* 清除可能的外边距 */
-    font-size: 0.85rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-  }
-    
-    /* 宠物发现适配 */
-    .pet-discovery-container {
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-    }
-    
-    .pet-preview {
-        width: 150px;
-        height: 150px;
-        margin: 5px auto;
-    }
-    
-    .pet-description {
-        padding: 10px;
-        margin: 10px 0;
-        flex-grow: 1;
-        overflow-y: auto;
-        max-height: 40vh;
-    }
-    
-    /* 聊天界面完整显示适配 */
-    #chat-interface {
-        height: calc(100vh - 100px);
-        padding: 10px;
-    }
-    
-    .pet-chat-container {
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-    }
-    
-    .chat-messages {
-        height: calc(100% - 70px);
-        max-height: none;
-        overflow-y: auto;
-    }
-    
-    /* 输入区域适配 */
-    .chat-input {
-        margin-top: 10px;
-        height: 50px;
-    }
-    
-    .chat-input input {
-        padding: 8px 12px;
-        height: 100%;
-    }
-    
-    .chat-input button {
-        padding: 0 15px;
-        height: 100%;
-    }
-    
-    /* 按钮适配 */
-    .btn {
-        padding: 10px 20px;
-        font-size: 1rem;
-        margin-top: 10px;
-    }
-    
-    /* 命名输入适配 */
-    .name-input {
-        font-size: 1.1rem;
-        padding: 10px 15px;
-    }
-}
 
-/* 小屏幕手机特别适配 */
-@media (max-width: 480px) {
-    /* 地域选择改为3列更紧凑 */
-  .region-selector {
-    grid-template-columns: repeat(3, 1fr) !important;
-    gap: 8px;
-  }
-    
-  .region-card {
-    font-size: 0.75rem;
-    min-height: 50px;
-  }
-    
-    .status-item {
-        min-width: 28%;
+    .game-header {
+        flex-direction: column;
+        gap: 15px;
     }
     
-    .status-value {
-        font-size: 1.1rem;
+    .status-container {
+        width: 100%;
+        justify-content: space-around;
     }
     
-    .status-label {
-        font-size: 0.8rem;
-    }
-    
-    .pet-preview {
-        width: 120px;
-        height: 120px;
-    }
-    
-    .step-description {
-        font-size: 0.9rem;
-        margin-bottom: 15px;
-    }
-    
-    .message .content {
-        font-size: 0.9rem;
-        padding: 8px 12px;
+    .chat-title {
+        font-size: 1.6rem;
     }
     
     .avatar {
-        width: 35px;
-        height: 35px;
-        margin: 0 8px;
-    }
-
-    .pet-name {
-        font-size: 1rem !important;
-    }
-    
-    .chat-header {
-        margin-bottom: 5px !important;
+        width: 50px;
+        height: 50px;
     }
 }
 
-/* 超小屏幕特殊处理 */
-@media (max-width: 360px) {
-  .region-selector {
-    grid-template-columns: repeat(2, 1fr) !important;
-  }
-    
-    .region-card {
-        font-size: 0.7rem;
+@media (max-width: 480px) {
+    .region-selector {
+        grid-template-columns: 1fr;
     }
+    
+    .pet-preview {
+        width: 200px;
+        height: 200px;
+    }
+    
+    .chat-messages {
+        height: 1000px; /* 移动端调整高度 */
+    }
+
+      .region-card {
+    min-height: 70px;
+  }
+  
+  .region-icon {
+    font-size: 1.5rem;
+  }
+  
+  .region-name {
+    font-size: 0.7rem;
+  }
 }
