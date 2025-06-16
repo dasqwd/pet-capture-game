@@ -522,93 +522,178 @@ footer {
 
 /* 移动端 - 简洁图标方案 */
 @media (max-width: 768px) {
-  /* 步骤容器优化 */
-  #pet-discovery.step-container {
-    padding: 15px !important;
-    height: calc(100vh - 20px) !important;
+  /* 地域选择容器 - 严格2列3行网格 */
+  .region-selector {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    grid-template-rows: repeat(3, minmax(100px, 1fr)) !important;
+    gap: 10px !important;
+    padding: 5px !important;
+    margin: 0 auto 15px !important;
+    width: 100% !important;
+    height: auto !important;
+  }
+
+  /* 地域卡片优化 */
+  .region-card {
+    min-height: 0 !important;
+    height: 100% !important;
+    padding: 8px 5px !important;
+    margin: 0 !important;
     display: flex !important;
     flex-direction: column !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    background: rgba(106, 90, 205, 0.25) !important;
+    border: 1px solid rgba(147, 112, 219, 0.3) !important;
+    border-radius: 12px !important;
+    transition: all 0.2s ease !important;
+  }
+
+  /* 图标优化 */
+  .region-icon {
+    font-size: 1.8rem !important;
+    margin: 0 auto 3px !important;
+    color: #ffd700 !important;
+    text-align: center !important;
+    width: 100% !important;
+  }
+
+  /* 名称优化 */
+  .region-name {
+    font-size: 0.85rem !important;
+    text-align: center !important;
+    margin: 3px 0 !important;
+    line-height: 1.2 !important;
+    font-weight: 600 !important;
+    padding: 0 2px !important;
+    width: 100% !important;
+    white-space: nowrap !important;
     overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  /* 描述文本优化 */
+  .region-desc {
+    font-size: 0.65rem !important;
+    line-height: 1.3 !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    color: rgba(255,255,255,0.7) !important;
+    margin-top: auto !important;
+    padding: 3px 5px 0 !important;
+    width: 100% !important;
+    text-align: center !important;
+    border-top: 1px dashed rgba(255,255,255,0.15) !important;
+  }
+
+  /* 选中状态优化 */
+  .region-card.selected {
+    background: rgba(106, 90, 205, 0.4) !important;
+    box-shadow: 0 0 0 2px var(--accent-color) !important;
+    transform: scale(0.98) !important;
+  }
+      /* 步骤容器优化（不影响其他步骤） */
+  #pet-discovery.step-container {
+    padding: 15px;
+    height: calc(100vh - 20px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
   }
 
   /* 标题优化 */
   #pet-discovery .step-title {
-    font-size: 1.5rem !important;
-    margin-bottom: 10px !important;
+    font-size: 1.5rem;
+    margin-bottom: 10px;
   }
 
   /* 描述文本优化 */
   #pet-discovery .step-description {
-    font-size: 1rem !important;
-    margin-bottom: 15px !important;
-    line-height: 1.4 !important;
+    font-size: 1rem;
+    margin-bottom: 15px;
+    line-height: 1.4;
   }
 
   /* 宠物预览区域优化 */
-  .pet-preview {
-    width: 180px !important;
-    height: 180px !important;
-    margin: 0 auto 15px !important;
-    flex-shrink: 0 !important;
+  #pet-discovery .pet-preview {
+    width: 180px;
+    height: 180px;
+    margin: 0 auto 15px;
   }
 
-  .pet-outline {
-    width: 100% !important;
-    height: 100% !important;
-    font-size: 3.5rem !important;
-    border-width: 3px !important;
+  #pet-discovery .pet-outline {
+    width: 100%;
+    height: 100%;
+    font-size: 3.5rem;
+    border-width: 3px;
   }
 
   /* 宠物描述区域优化 */
-  .pet-description {
-    flex-grow: 1 !important;
-    padding: 15px !important;
-    margin-bottom: 15px !important;
-    max-height: 30vh !important;
-    overflow-y: auto !important;
+  #pet-discovery .pet-description {
+    flex-grow: 1;
+    padding: 15px;
+    margin-bottom: 15px;
+    max-height: 30vh;
+    overflow-y: auto;
   }
 
-  .pet-description h3 {
-    font-size: 1.2rem !important;
-    margin-bottom: 10px !important;
+  #pet-discovery .pet-description h3 {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
   }
 
-  #pet-description-text {
-    font-size: 0.9rem !important;
-    line-height: 1.5 !important;
+  #pet-discovery #pet-description-text {
+    font-size: 0.9rem;
+    line-height: 1.5;
   }
 
   /* 捕捉按钮优化 */
-  #catch-btn {
-    padding: 12px 25px !important;
-    font-size: 1rem !important;
-    margin: 10px auto !important;
-    width: 80% !important;
-    max-width: 200px !important;
+  #pet-discovery #catch-btn {
+    padding: 12px 25px;
+    font-size: 1rem;
+    margin: 10px auto;
+    width: 80%;
+    max-width: 200px;
   }
 }
 
-/* 超小屏幕额外优化 */
+/* 超小屏幕优化 */
 @media (max-width: 480px) {
+  .region-selector {
+    grid-template-rows: repeat(3, minmax(90px, 1fr)) !important;
+  }
+  
+  .region-icon {
+    font-size: 1.5rem !important;
+  }
+  
+  .region-name {
+    font-size: 0.75rem !important;
+  }
+  
+  .region-desc {
+    font-size: 0.6rem !important;
+    -webkit-line-clamp: 1 !important; /* 超小屏只显示1行描述 */
+  }
+
   #pet-discovery.step-container {
-    padding: 10px !important;
+    padding: 10px;
   }
 
-  .pet-preview {
-    width: 150px !important;
-    height: 150px !important;
+  #pet-discovery .pet-preview {
+    width: 150px;
+    height: 150px;
   }
 
-  .pet-outline {
-    font-size: 3rem !important;
+  #pet-discovery .pet-outline {
+    font-size: 3rem;
   }
 
-  .pet-description {
-    padding: 10px !important;
-    max-height: 25vh !important;
-  }
-
-  #catch-btn {
-    padding: 10px 20px !important;
+  #pet-discovery .pet-description {
+    max-height: 25vh;
   }
 }
