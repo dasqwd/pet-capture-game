@@ -518,6 +518,10 @@ footer {
     padding: 20px;
     margin-top: 20px;
     color: rgba(255, 255, 255, 0.7);
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    font-size: 12px;
 }
 
 /* 移动端 - 简洁图标方案 */
