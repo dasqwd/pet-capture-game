@@ -522,54 +522,34 @@ footer {
 
 /* 移动端 - 简洁图标方案 */
 @media (max-width: 768px) {
-  /* 强制严格网格布局 */
   .region-selector {
     display: grid !important;
-    grid-template-columns: repeat(2, 1fr); /* 2列 */
-    grid-auto-rows: minmax(100px, 1fr); /* 行高固定 */
-    gap: 10px;
+    grid-template-columns: repeat(2, 1fr);
+    grid-auto-rows: minmax(80px, auto);
+    gap: 12px;
     padding: 5px;
-    align-items: start; /* 顶部对齐 */
   }
 
-  /* 卡片容器设置 */
   .region-card {
-    height: 100%; /* 填满网格单元格 */
-    display: flex;
     flex-direction: column;
-    padding: 8px !important;
-    overflow: hidden; /* 防止内容溢出 */
+    align-items: center;
+    justify-content: center;
+    padding: 5px 8px !important;
   }
 
-  /* 图标缩小 */
   .region-icon {
-    font-size: 1.3rem !important;
-    margin: 0 auto 5px !important; /* 居中 */
-    text-align: center;
+    font-size: 1.8rem !important;
+    margin: 0 0 5px 0 !important;
   }
 
-  /* 名称样式 */
   .region-name {
-    font-size: 0.75rem !important;
+    font-size: 0.8rem !important;
     text-align: center;
-    margin-bottom: 6px !important;
-    font-weight: bold;
     line-height: 1.2;
   }
 
-  /* 描述文本优化 - 关键修改 */
   .region-description {
-    font-size: 0.65rem !important; /* 比名称更小 */
-    line-height: 1.3;
-    display: -webkit-box;
-    -webkit-line-clamp: 2; /* 严格限制2行 */
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    color: rgba(255,255,255,0.7); /* 降低对比度 */
-    margin-top: auto; /* 底部对齐 */
-    padding-top: 3px;
-    border-top: 1px dashed rgba(255,255,255,0.2); /* 视觉分隔线 */
+    display: none !important;
   }
 }
 
