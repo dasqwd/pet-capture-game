@@ -520,74 +520,37 @@ footer {
     color: rgba(255, 255, 255, 0.7);
 }
 
-/* 响应式设计 */
+/* 移动端 - 简洁图标方案 */
 @media (max-width: 768px) {
   .region-selector {
     display: grid !important;
-    grid-template-columns: repeat(2, 1fr); /* 2列布局 */
-    grid-template-rows: repeat(3, auto); /* 3行布局 */
-    gap: 8px;
-    margin: 0 auto;
-    max-width: 100%;
+    grid-template-columns: repeat(2, 1fr);
+    grid-auto-rows: minmax(80px, auto);
+    gap: 12px;
     padding: 5px;
   }
 
-    .region-card {
-    display: flex !important;
+  .region-card {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 5px !important;
-    margin: 0 !important;
-    min-height: 80px;
-    border-radius: 8px;
-    background: rgba(255,255,255,0.1);
+    padding: 5px 8px !important;
   }
-    .region-icon {
-    font-size: 1.8rem;
-    margin-bottom: 5px;
+
+  .region-icon {
+    font-size: 1.8rem !important;
+    margin: 0 0 5px 0 !important;
   }
-  
+
   .region-name {
-    font-size: 0.75rem;
+    font-size: 0.8rem !important;
     text-align: center;
     line-height: 1.2;
-    display: -webkit-box;
-    -webkit-line-clamp: 2; /* 限制2行文字 */
-    -webkit-box-orient: vertical;
-    overflow: hidden;
   }
 
   .region-description {
-    display: none !important; /* 隐藏描述 */
+    display: none !important;
   }
-    
-    .step-container {
-        padding: 25px;
-    }
-    
-    .step-title {
-        font-size: 1.5rem;
-    }
-
-    .game-header {
-        flex-direction: column;
-        gap: 15px;
-    }
-    
-    .status-container {
-        width: 100%;
-        justify-content: space-around;
-    }
-    
-    .chat-title {
-        font-size: 1.6rem;
-    }
-    
-    .avatar {
-        width: 50px;
-        height: 50px;
-    }
 }
 
 @media (max-width: 480px) {
