@@ -526,34 +526,39 @@ footer {
 @media (max-width: 768px) {
   /* 重置步骤容器布局 */
   .step-container {
-    position: relative;
-    transform: none;
-    width: 100%;
-    max-width: 100%;
-    margin: 0 auto;
-    padding: 20px;
-    box-sizing: border-box;
-    display: none; /* 保持网页端的隐藏/显示逻辑 */
+    position: static !important;
+    transform: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    padding: 15px !important;
+    margin: 0 auto !important;
+    display: none;
+    overflow-y: visible !important;
   }
 
     /* 活动步骤样式 */
     .step-container.active-step {
-        display: block; /* 覆盖默认的none */
+        display: block !important; /* 覆盖默认的none */
         animation: none !important; /* 禁用任何动画 */
     }
 
     /* 聊天界面特殊处理 */
     #chat-interface.active-step {
         display: flex !important;
-        height: 100vh;
         position: fixed;
         top: 0;
         left: 0;
+        right: 0;
+        bottom: 0;
+        height: 100vh !important;
         z-index: 100;
     }
     
   /* 游戏流程容器调整 */
   .game-flow {
+    display: block;
     height: auto;
     min-height: calc(100vh - 120px); /* 留出页脚空间 */
     padding-bottom: 60px;
@@ -562,9 +567,19 @@ footer {
   /* 地域选择优化（保持您现有的样式） */
   .region-selector {
     display: grid !important;
-    grid-template-columns: repeat(2, 1fr) !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    grid-auto-rows: minmax(100px, 1fr)) !important;
     gap: 10px !important;
+    padding: 5px !important;
     margin: 0 auto 15px !important;
+    width: 100% !important;
+    height: auto !important;
+  }
+
+  /* 保持原有的卡片样式 */
+  .region-card {
+    min-height: 100px !important;
+    padding: 8px 5px !important;
   }
 
   /* 宠物发现模块高度控制 */
@@ -619,28 +634,33 @@ footer {
 
   /* 页脚调整 */
   footer {
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-    background: rgba(0,0,0,0.5);
-    backdrop-filter: blur(5px);
-    padding: 10px 0;
-    z-index: 90;
+    position: relative;
+    z-index: 10;
+    padding: 15px 0 !important;
   }
 }
 
 /* 超小屏幕额外优化 */
 @media (max-width: 480px) {
   .region-selector {
-    grid-template-columns: 1fr !important; /* 单列布局 */
+    grid-template-columns: repeat(2, 1fr) !important; /* 保持2列布局 */
+    grid-auto-rows: minmax(90px, 1fr) !important;
   }
   
-  .pet-preview {
-    width: 150px !important;
-    height: 150px !important;
+  .region-card {
+    min-height: 90px !important;
   }
   
-  .step-container {
-    padding: 15px;
+  .region-icon {
+    font-size: 1.5rem !important;
+  }
+  
+  .region-name {
+    font-size: 0.75rem !important;
+  }
+  
+  .region-desc {
+    font-size: 0.6rem !important;
+    -webkit-line-clamp: 1 !important;
   }
 }
