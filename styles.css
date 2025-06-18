@@ -124,11 +124,12 @@ body {
 /* 游戏流程容器 */
 .game-flow {
     flex-grow: 1;
-    display: flex;
+    display: block;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     position: relative;
+    height: auto;
 }
 
 /* 步骤容器 */
@@ -528,15 +529,32 @@ footer {
 @media (max-width: 768px) {
   /* 重置步骤容器布局 */
   .step-container {
-    position: static;
+    position: relative;
     transform: none;
     width: 100%;
     max-width: 100%;
     margin: 0 auto;
     padding: 20px;
+    box-sizing: border-box;
     display: none; /* 保持网页端的隐藏/显示逻辑 */
   }
 
+    /* 活动步骤样式 */
+    .step-container.active-step {
+        display: block; /* 覆盖默认的none */
+        animation: none !important; /* 禁用任何动画 */
+    }
+
+    /* 聊天界面特殊处理 */
+    #chat-interface.active-step {
+        display: flex !important;
+        height: 100vh;
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 100;
+    }
+    
   /* 游戏流程容器调整 */
   .game-flow {
     height: auto;
