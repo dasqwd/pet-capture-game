@@ -740,54 +740,40 @@ footer {
     margin-left: 8px !important; /* 原15px */
   }
 
-  /* 游戏头部整体布局调整 */
-  .game-header {
+  /* 隐藏聊天界面的状态容器 */
+  #chat-interface .status-container {
+    display: none !important;
+  }
+
+  /* 调整聊天标题布局 */
+  #chat-interface .chat-header {
     display: flex;
-    justify-content: space-between; /* 左右分开 */
+    justify-content: space-between;
     align-items: center;
-    padding: 10px 15px !important;
-    flex-wrap: nowrap; /* 禁止换行 */
+    padding: 10px 15px;
   }
 
-  /* 宠物名称区域调整 */
-  .pet-name {
-    margin-right: auto; /* 占据左侧空间 */
-    white-space: nowrap; /* 禁止换行 */
-  }
-
-  /* 状态容器调整 */
-  .status-container {
-    display: flex;
-    gap: 15px !important;
-    margin-left: auto; /* 推至最右侧 */
-    align-items: center;
-  }
-
-  /* 状态项调整 */
-  .status-item {
+  /* 宠物名称样式 */
+  #chat-interface .pet-name {
     display: flex;
     align-items: center;
-    min-width: auto !important;
+    font-size: 1.2rem;
   }
 
-  /* 历练值特殊样式 */
-  .status-item.exp-item {
-    margin-left: auto; /* 右对齐关键设置 */
-  }
-
-  /* 状态标签隐藏（可选） */
-  .status-label {
-    display: none; /* 隐藏"历练"文字 */
-  }
-
-  /* 状态值样式 */
-  .status-value {
-    font-size: 1rem !important;
+  /* 历练值显示样式 */
+  #chat-interface .pet-name::after {
+    content: "历练值 " attr(data-exp);
+    margin-left: auto;
+    padding-left: 15px;
+    font-size: 0.9rem;
     color: #ffd700;
     font-weight: bold;
-    padding: 2px 8px;
-    background: rgba(0,0,0,0.3);
-    border-radius: 10px;
+  }
+
+  /* 隐藏原始状态栏 */
+  #chat-interface .status-container,
+  #chat-interface .status-bar {
+    display: none !important;
   }
 }
 
@@ -867,5 +853,14 @@ footer {
   
   .pet-name {
     font-size: 1.3rem !important;
+  }
+
+  #chat-interface .pet-name {
+    font-size: 1rem;
+  }
+  
+  #chat-interface .pet-name::after {
+    font-size: 0.8rem;
+    padding-left: 10px;
   }
 }
