@@ -687,9 +687,58 @@ footer {
     opacity: 0.5 !important; /* 半透明 */
     z-index: 5 !important; /* 确保在按钮下方 */
     pointer-events: none !important; /* 禁止交互 */
-    background: rgba(0,0,0,0.3) !important; /* 背景避免文字看不清 */
+  }
+    
+  /* 聊天消息容器调整 */
+  .chat-messages {
+    padding: 10px 5px !important; /* 缩小左右内边距 */
   }
 
+  /* 聊天消息整体调整 */
+  .message {
+    max-width: 90% !important; /* 扩大消息宽度 */
+    margin-bottom: 15px !important;
+  }
+
+  /* 头像调整 */
+  .avatar {
+    width: 40px !important;  /* 原60px */
+    height: 40px !important;
+    margin: 0 8px !important; /* 原0 15px */
+    font-size: 18px !important; /* 原24px */
+  }
+
+  /* 消息内容调整 */
+  .content {
+    padding: 10px 15px !important; /* 原15px 20px */
+    font-size: 0.9rem !important; /* 原1.1rem */
+    line-height: 1.5 !important; /* 原1.6 */
+    border-radius: 15px !important;
+  }
+
+  /* 系统消息特殊调整 */
+  .system .content {
+    margin-left: 5px !important; /* 原10px */
+    border-top-left-radius: 5px !important;
+  }
+
+  /* 用户消息特殊调整 */
+  .user .content {
+    margin-right: 5px !important; /* 原10px */
+    border-top-right-radius: 5px !important;
+  }
+
+  /* 输入区域调整 */
+  .chat-input input {
+    padding: 10px 15px !important; /* 原15px 25px */
+    font-size: 0.95rem !important;
+  }
+
+  .chat-input button {
+    padding: 10px 15px !important;
+    font-size: 0.95rem !important;
+    margin-left: 8px !important; /* 原15px */
+  }
 }
 
 /* 超小屏幕额外优化 */
@@ -745,4 +794,19 @@ footer {
   #pet-description-text {
     font-size: 0.8rem !important;
   } 
+
+  .avatar {
+    width: 35px !important;
+    height: 35px !important;
+    margin: 0 5px !important;
+  }
+
+  .content {
+    font-size: 0.85rem !important;
+    padding: 8px 12px !important;
+  }
+
+  .chat-input input {
+    padding: 8px 12px !important;
+  }
 }
