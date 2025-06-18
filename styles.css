@@ -619,16 +619,32 @@ footer {
 
   /* 宠物预览图调整 */
   .pet-preview {
-    width: 180px !important;
-    height: 180px !important;
-    margin: 15px auto !important;
+    width: 120px !important;
+    height: 120px !important;
+    margin: 12px auto !important;
   }
 
+  .pet-outline {
+    font-size: 3rem !important;  /* 问号图标大小，原5rem */
+    border-width: 3px !important; /* 边框粗细 */
+  }
+  
+  .pet-description h3 {
+    font-size: 1.1rem !important;  /* 标题，原1.2rem */
+    margin-bottom: 8px !important; /* 原15px */
+  }
+  
+  #pet-description-text {
+    font-size: 0.85rem !important;  /* 正文，原0.9rem */
+    line-height: 1.5 !important;    /* 原1.7 */
+  }
+    
   /* 描述区域滚动 */
   .pet-description {
+    padding: 12px !important;  /* 原15px */
     max-height: 40vh;
     overflow-y: auto;
-    margin: 15px 0;
+    margin: 12px 0;
   }
 
   /* 按钮位置固定 */
@@ -705,4 +721,20 @@ footer {
     font-size: 0.6rem !important;
     -webkit-line-clamp: 1 !important;
   }
+  .pet-preview {
+    width: 100px !important;
+    height: 100px !important;
+  }
+  
+  .pet-outline {
+    font-size: 2.5rem !important;
+  }
+  
+  .pet-description h3 {
+    font-size: 1rem !important;
+  }
+  
+  #pet-description-text {
+    font-size: 0.8rem !important;
+  } 
 }
