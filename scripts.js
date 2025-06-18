@@ -13,6 +13,7 @@ const gameState = {
   petName: "",
   petImage: null,
   petVideo: null,
+  petType: null, // 新增：存储宠物类型
   conversationId: generateConversationId(),
   messages: [],
   regionPetsCache: {}
@@ -60,7 +61,7 @@ function generateConversationId() {
 // 预加载的宠物数据
 const preloadedPets = {
     mountain: [
-        "冰晶狐：体型娇小，身披银蓝色毛发，阳光下闪烁冰晶光芒。冰蓝色眼睛，尾巴蓬松如云朵，末端有点缀的冰晶。行动时留下淡淡冰雾轨迹，性格温顺但警惕。",
+        "霜月玉兔：毛色洁白如新雪，耳尖缀冰晶，跳跃时洒落星尘寒光。性格温柔警觉，通月华之力，能冰封与治愈。",
         "雪域狼王：通体雪白，毛发如银丝般闪亮，双眼如蓝宝石。能操控冰雪，在暴风雪中行动自如。性格孤傲但忠诚，只服从认可的主人。"
     ],
     forest: [
@@ -73,7 +74,7 @@ const preloadedPets = {
     ],
     ocean: [
         "水晶水母：伞盖透明闪烁蓝绿光，触手飘逸如丝带。能释放治愈光波，在水中优雅漂浮。性格宁静温和，喜欢随波逐流。",
-        "海豚精灵：流线型身体，皮肤光滑，背鳍有发光晶体。擅长高速游泳，能发出超声波交流。性格友好爱玩，喜欢跃出水面。"
+        "碧渊灵鲲：身披蓝银鳞片，背负海晶，游动间泛起光波水纹。能发音波共鸣，性情沉静亲近，是海中守护灵兽。"
     ],
     desert: [
         "金砂狐：毛发如细沙般柔软金黄，眼睛琥珀色。能在沙中穿梭，控制沙粒形成各种形状。性格机警独立，但对主人忠诚。",
@@ -83,6 +84,33 @@ const preloadedPets = {
         "云朵云雀：羽毛蓬松如云，翅膀边缘有彩虹色光芒。歌声清脆，能召唤微风细雨。性格活泼开朗，喜欢高空翱翔。",
         "风暴鹰：羽毛银灰色，眼睛如闪电明亮。能操控气流，翅膀扇动产生旋风。性格高傲威严，尊重强者。"
     ]
+};
+
+// 宠物图片映射
+const petBackgrounds = {
+    // 地域1：昆仑山脉
+    'mountain-1': '1-1-yutu.png', // 霜月玉兔
+    'mountain-2': '1-2-langwang.png', // 雪域狼王
+    
+    // 地域2：翡翠森林
+    'forest-1': '2-1-jingling.png', // 翠叶精灵
+    'forest-2': '2-2-songshu.png', // 橡果守卫
+
+    // 地域3：熔岩火山
+    'volcano-1': '3-1-xiyi.png', // 熔岩蜥蜴
+    'volcano-2': '3-2-fenghuang.png', // 火焰凤凰
+
+    // 地域4：无尽海洋
+    'ocean-1': '4-1-shuimu.png', // 水晶水母
+    'ocean-2': '4-2-kun.png', // 碧渊灵鲲
+
+    // 地域5：黄金沙漠
+    'desert-1': '5-1-jinhu.png', // 金砂狐
+    'desert-2': '5-2-xiezi.png', // 沙漠蝎王
+    
+    // 地域6：天空之城
+    'sky-1': '6-1-que.png', // 云朵云雀
+    'sky-2': '6-2-ying.png' // 风暴鹰
 };
 
 // 显示指定步骤
@@ -309,25 +337,29 @@ document.addEventListener('DOMContentLoaded', function() {
         const regionName = regionData[gameState.selectedRegion].name;
         document.getElementById('region-name-display').textContent = regionName;
         
-        // 立即显示预加载数据
-        const pets = await getPetsForRegion(gameState.selectedRegion);
-        const petDescriptionElement = document.getElementById('pet-description-text');
+        // 随机选择宠物类型 (1或2)
+        const petNum = Math.floor(Math.random() * 2) + 1;
+        gameState.petType = `${gameState.selectedRegion}-${petNum}`;
         
-        if (pets.length > 0) {
-            const randomPet = pets[Math.floor(Math.random() * pets.length)];
-            petDescriptionElement.textContent = randomPet;
-            gameState.petDescription = randomPet;
-        } else {
-            petDescriptionElement.textContent = "暂时没有找到灵宠，请换个地域试试~";
-        }
+        // 使用预加载描述
+        const pets = preloadedPets[gameState.selectedRegion];
+        document.getElementById('pet-description-text').textContent = pets[petNum-1];
     });
     
-    // 尝试捕捉
+    // 尝试捕捉按钮事件
     document.getElementById('catch-btn').addEventListener('click', function() {
+        console.log('捕捉按钮被点击'); // 调试用
+        if (!gameState.petType) {
+            console.warn('未选择宠物类型');
+            return;
+        }
         showStep('naming-pet');
+        document.getElementById('pet-name-input').value = '';
+        document.getElementById('pet-name-input').focus();
     });
-    
-    // 命名确认 - 修复空引用问题
+
+
+    // 命名确认按钮事件
     document.getElementById('name-confirm-btn').addEventListener('click', function() {
         const nameInput = document.getElementById('pet-name-input');
         const petName = nameInput.value.trim();
@@ -340,28 +372,31 @@ document.addEventListener('DOMContentLoaded', function() {
         gameState.petName = petName;
         document.getElementById('generating-indicator').style.display = 'block';
         
-        // 更新名称显示 - 只更新实际存在的元素
-        const petNameDisplay = document.getElementById('pet-name-display');
-        const chatTitle = document.getElementById('chat-title');
+        // 更新名称显示
+        const nameDisplays = document.querySelectorAll('[data-pet-name]');
+        nameDisplays.forEach(el => el.textContent = petName);
         
-        if (petNameDisplay) petNameDisplay.textContent = petName;
-        if (chatTitle) chatTitle.textContent = petName;
-        
-        // 检查并更新聊天中的宠物名称（如果元素存在）
-        const petNameChat = document.getElementById('pet-name-chat');
-        if (petNameChat) petNameChat.textContent = petName;
-        
-        // 直接进入聊天界面
+        // 进入聊天界面
         setTimeout(() => {
             showStep('chat-interface');
             document.querySelector('.game-header').style.display = 'flex';
-            const chatMessages = document.querySelector('.chat-messages');
-            if (chatMessages) {
-                chatMessages.style.backgroundImage = 
-                    "url('https://img.freepik.com/free-vector/cute-fox-with-cub-cartoon-vector-icon-illustration_138676-2247.jpg')";
-            }
+            updateChatBackground();
         }, 1500);
     });
+
+    // 更新聊天背景
+    function updateChatBackground() {
+        const chatMessages = document.querySelector('.chat-messages');
+        if (!gameState.petType) return;
+        
+        // 直接替换背景图（使用您准备的宠物图片）
+        chatMessages.style.backgroundImage = 
+            `url(./pets/${petBackgrounds[gameState.petType]})`;
+        
+        // 保持原有遮罩效果
+        chatMessages.style.backgroundSize = 'cover';
+        chatMessages.style.backgroundPosition = 'center';
+    }
     
     // 发送消息
     const sendBtn = document.getElementById('send-btn');
