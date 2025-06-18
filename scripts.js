@@ -372,9 +372,8 @@ document.addEventListener('DOMContentLoaded', function() {
         gameState.petName = petName;
         document.getElementById('generating-indicator').style.display = 'block';
         
-        // 更新名称显示
-        const nameDisplays = document.querySelectorAll('[data-pet-name]');
-        nameDisplays.forEach(el => el.textContent = petName);
+        // 更新所有名称显示位置
+        updatePetNameDisplays(petName);
         
         // 进入聊天界面
         setTimeout(() => {
@@ -407,5 +406,26 @@ document.addEventListener('DOMContentLoaded', function() {
         userInput.addEventListener('keypress', function(e) {
             if(e.key === 'Enter') sendMessage();
         });
+    }
+
+    // 新增：统一更新所有名称显示
+    function updatePetNameDisplays(petName) {
+        // 游戏标题显示
+        const nameDisplays = [
+            'pet-name-display',  // 顶部状态栏
+            'pet-name-chat',     // 欢迎语
+            'chat-title'         // 聊天标题
+        ];
+        
+        nameDisplays.forEach(id => {
+            const element = document.getElementById(id);
+            if (element) element.textContent = petName;
+        });
+        
+        // 调试输出
+        console.log('更新宠物名称:', petName, '元素:', nameDisplays.map(id => ({
+            id,
+            exists: !!document.getElementById(id)
+        })));
     }
 });
