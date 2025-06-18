@@ -515,14 +515,12 @@ body {
 
 /* 页脚 */
 footer {
-    text-align: center;  /* 水平居中 */
-    padding: 20px;
-    margin-top: 20px;
-    color: rgba(255, 255, 255, 0.7);
-    position: fixed;
-    bottom: 0;
+    display: flex;
+    justify-content: center; /* 水平居中 */
+    align-items: center;    /* 垂直居中 */
     width: 100%;
-    font-size: 12px;
+    padding: 15px 0;
+    background: rgba(0,0,0,0.2); /* 可选背景色 */
 }
 
 /* 移动端适配 - 保持跳转效果 */
