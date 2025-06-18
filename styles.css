@@ -596,7 +596,7 @@ footer {
   .region-selector {
     display: grid !important;
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    grid-auto-rows: minmax(100px, 1fr)) !important;
+    grid-auto-rows: minmax(100px, 1fr) !important;
     gap: 10px !important;
     padding: 5px !important;
     margin: 0 auto 15px !important;
