@@ -514,7 +514,7 @@ body {
 
 /* 页脚 */
 footer {
-    text-align: center;
+    text-align: center;  /* 水平居中 */
     padding: 20px;
     margin-top: 20px;
     color: rgba(255, 255, 255, 0.7);
@@ -532,9 +532,9 @@ footer {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     grid-template-rows: repeat(3, minmax(100px, 1fr)) !important;
     gap: 10px !important;
-    padding: 5px !important;
+    padding: 5px 0;    /* 添加适当内边距 */
     margin: 0 auto 15px !important;
-    width: 100% !important;
+    width: 100%;        /* 确保宽度铺满 */
     height: auto !important;
   }
 
