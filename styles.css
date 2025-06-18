@@ -555,6 +555,34 @@ footer {
         height: 100vh !important;
         z-index: 100;
     }
+
+  /* 步骤标题调整 */
+  .step-title {
+    font-size: 1.5rem !important;  /* 原2.2rem */
+    margin-bottom: 15px !important; /* 原30px */
+  }
+  
+  /* 步骤描述调整 */
+  .step-description {
+    font-size: 0.95rem !important;  /* 原1.2rem */
+    line-height: 1.5 !important;    /* 原1.6 */
+    margin-bottom: 20px !important; /* 原40px */
+  }
+  
+  /* 移除描述中的<br>换行效果 */
+  .step-description br {
+    display: none;
+  }
+  
+  /* 地域名称调整（保持原有选择器） */
+  .region-name {
+    font-size: 0.8rem !important;   /* 原0.85rem */
+  }
+  
+  /* 地域描述调整 */
+  .region-desc {
+    font-size: 0.6rem !important;   /* 原0.65rem */
+  }
     
   /* 游戏流程容器调整 */
   .game-flow {
@@ -645,6 +673,20 @@ footer {
   .region-selector {
     grid-template-columns: repeat(2, 1fr) !important; /* 保持2列布局 */
     grid-auto-rows: minmax(90px, 1fr) !important;
+  }
+
+  .step-title {
+    font-size: 1.3rem !important;
+    margin-bottom: 10px !important;
+  }
+  
+  .step-description {
+    font-size: 0.85rem !important;
+    margin-bottom: 15px !important;
+  }
+  
+  .region-name {
+    font-size: 0.75rem !important;
   }
   
   .region-card {
