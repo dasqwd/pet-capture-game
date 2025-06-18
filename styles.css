@@ -758,16 +758,18 @@ footer {
     display: flex;
     align-items: center;
     font-size: 1.2rem;
+    width: 100%; /* 确保容器宽度填满 */
   }
 
   /* 历练值显示样式 */
   #chat-interface .pet-name::after {
-    content: "历练值 " attr(data-exp);
+    content: "历练值 " attr(data-exp) " / " attr(data-max-exp) " (" attr(data-exp-percent) "%)";
     margin-left: auto;
     padding-left: 15px;
     font-size: 0.9rem;
     color: #ffd700;
     font-weight: bold;
+    white-space: nowrap; /* 防止换行 */
   }
 
   /* 隐藏原始状态栏 */
