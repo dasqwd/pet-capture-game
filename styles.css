@@ -520,7 +520,6 @@ footer {
     align-items: center;    /* 垂直居中 */
     width: 100%;
     padding: 15px 0;
-    background: rgba(0,0,0,0.2); /* 可选背景色 */
 }
 
 /* 移动端适配 - 保持跳转效果 */
