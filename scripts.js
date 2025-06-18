@@ -115,11 +115,35 @@ const petBackgrounds = {
 
 // 显示指定步骤
 function showStep(stepId) {
-    document.getElementById('region-selection').style.display = 'none';
-    document.getElementById('pet-discovery').style.display = 'none';
-    document.getElementById('naming-pet').style.display = 'none';
-    document.getElementById('chat-interface').style.display = 'none';
-    document.getElementById(stepId).style.display = stepId === 'chat-interface' ? 'flex' : 'block';
+    // 隐藏所有步骤
+    document.querySelectorAll('.step-container').forEach(step => {
+        step.style.display = 'none';
+        step.classList.remove('active-step'); // 移除活动状态类
+    });
+    
+    // 显示当前步骤
+    const currentStep = document.getElementById(stepId);
+    if (currentStep) {
+        currentStep.style.display = stepId === 'chat-interface' ? 'flex' : 'block';
+        currentStep.classList.add('active-step'); // 添加活动状态类
+        
+        // 移动端特殊处理：滚动到顶部
+        if (window.innerWidth <= 768) {
+            window.scrollTo(0, 0);
+            document.documentElement.style.overflow = 'hidden';
+            document.body.style.overflow = 'hidden';
+            setTimeout(() => {
+                document.documentElement.style.overflow = 'auto';
+                document.body.style.overflow = 'auto';
+            }, 100);
+        }
+    }
+    
+    // 特殊处理聊天界面
+    if (stepId === 'chat-interface') {
+        document.querySelector('.game-header').style.display = 'flex';
+    }
+    
     gameState.currentStep = stepId;
 }
 
