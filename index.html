@@ -9,38 +9,6 @@
 </head>
 <body>
     <div class="container">
-        <!-- 游戏头部 - 只在聊天界面显示 -->
-        <div class="game-header">
-            
-            <h1 class="game-title">灵伴奇缘</h1>
-            
-            <div class="status-container">
-                <div class="status-item">
-                    <div class="status-label">饥饿度</div>
-                    <div class="status-value">20%</div>
-                    <div class="status-bar">
-                        <div class="status-fill hunger-fill" style="width: 20%"></div>
-                    </div>
-                </div>
-                
-                <div class="status-item">
-                    <div class="status-label">生命值</div>
-                    <div class="status-value">80%</div>
-                    <div class="status-bar">
-                        <div class="status-fill health-fill" style="width: 80%"></div>
-                    </div>
-                </div>
-                
-                <div class="status-item">
-                    <div class="status-label">历练值</div>
-                    <div class="status-value exp-value">0%</div>
-                    <div class="status-bar">
-                        <div class="status-fill exp-fill" style="width: 0%"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
         <!-- 游戏流程区域 -->
         <div class="game-flow">
             <!-- 步骤1：地域选择 -->
@@ -151,24 +119,58 @@
             </div>
             
             <!-- 步骤4：聊天界面 -->
-            <div id="chat-interface">
-                <div class="pet-chat-container">
-                    <div class="chat-header">
-                        <h3 class="chat-title">
-                                <div class="pet-name">
-                                    <i class="fas fa-paw"></i>
-                                    <span id="pet-name-display">未命名灵宠</span>
-                                </div>
-                        </h3>
+            <div id="chat-interface" class="step-container">
+                <!-- 顶部状态栏 -->
+                <div class="chat-header">
+                    <div class="pet-name">
+                        <i class="fas fa-paw"></i>
+                        <span id="pet-name-display">未命名灵宠</span>
                     </div>
                     
+                    <!-- 状态容器 -->
+                    <div class="status-wrapper">
+                        <div class="status-container">
+                            <!-- 第一行 -->
+                            <div class="status-row">
+                                <div class="status-item">
+                                    <span class="status-label">饥饿度</span>
+                                    <div class="status-bar">
+                                        <div class="status-fill hunger-fill" style="width: 80%;"></div>
+                                        <span class="status-text hunger-text">80%</span>
+                                    </div>
+                                </div>
+                                <div class="status-item">
+                                    <span class="status-label">历练值</span>
+                                    <span class="plain-value exp-value">99999</span>
+                                </div>
+                            </div>
+                            <!-- 第二行 -->
+                            <div class="status-row">
+                                <div class="status-item">
+                                    <span class="status-label">生命值</span>
+                                    <div class="status-bar">
+                                        <div class="status-fill health-fill" style="width: 80%;"></div>
+                                        <span class="status-text health-text">80%</span>
+                                    </div>
+                                </div>
+                                <div class="status-item">
+                                    <span class="status-label">金币</span>
+                                    <span class="plain-value gold-value">99999</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 中间聊天区域 -->
+                <div class="chat-content-wrapper">
                     <div class="chat-messages" id="messages">
                         <div class="message system">
                             <div class="avatar">
                                 <i class="fas fa-dragon"></i>
                             </div>
                             <div class="content">
-                                👋 你好，主人！我是你的灵宠伙伴<span id="pet-name-chat">冰晶</span>，<br>
+                                👋 你好，主人！我是<span id="pet-name-chat">冰晶</span>，<br>
                                 感谢你为我取了这个名字！<br>
                                 我会一直陪伴你、保护你！<br>
                                 当我饿了或者受伤的时候，请记得照顾我哦～<br>
@@ -176,7 +178,16 @@
                             </div>
                         </div>
                     </div>
+                </div>
+                
+                <!-- 底部固定区域 -->
+                <div class="chat-bottom-fixed">
+                    <!-- 操作按钮 -->
+                    <div id="action-buttons-container" class="action-buttons-container">
+                        <!-- 按钮将在这里动态生成 -->
+                    </div>
                     
+                    <!-- 输入框 -->
                     <div class="chat-input-area">
                         <div class="chat-input">
                             <input type="text" id="user-input" placeholder="和你的灵宠对话...">
