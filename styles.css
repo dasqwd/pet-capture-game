@@ -687,301 +687,261 @@ footer {
 }
 
 @media screen and (max-width: 768px) {
-    body {
-        padding: 10px;
-        overflow-x: hidden !important; /* ✅ 全局防止溢出 */
-    }
+  html, body {
+    overflow-x: hidden;
+    overflow-y: auto;
+    margin: 0;
+    padding: 0;
+  }
 
-    .container {
-        padding: 10px;
-        height: auto;
-    }
+  .container {
+    padding: 10px;
+    height: auto;
+  }
 
-    .pet-name {
-        font-size: 1.2rem!important; 
-        top: 0px!important; 
-        left: 10px!important; 
-    }
+  .pet-name {
+    font-size: 1.2rem!important;
+    top: 0px!important;
+    left: 10px!important;
+  }
 
-    .pet-name i {
-      font-size: 1.0rem !important;  /* 由原来的2rem缩小 */
-      margin-right: 6px !important;
-    }
+  .pet-name i {
+    font-size: 1.0rem !important;
+    margin-right: 6px !important;
+  }
 
-    .status-wrapper {
-        top: 10px;
-        right: 10px;
-        transform: scale(0.85); /* 缩小整体尺寸 */
-        transform-origin: top right;
-    }
+  .status-wrapper {
+    top: 10px;
+    right: 10px;
+    transform: scale(0.85);
+    transform-origin: top right;
+  }
 
-    .status-container {
-        min-width: 240px !important;  /* 由300px稍微缩小，宽度更合适 */
-        padding: 10px 15px;            /* 给背景一些内边距 */
-        background: rgba(0, 0, 0, 0.35); /* 增加背景色使其更明显 */
-        border-radius: 12px;            /* 圆角 */
-    }
+  .status-container {
+    min-width: 240px !important;
+    padding: 10px 15px;
+    background: rgba(0, 0, 0, 0.35);
+    border-radius: 12px;
+  }
 
-    .status-row {
-        flex-direction: column;
-        gap: 20px !important; /* 由30px缩小 */
-    }
-    /* 标签字体缩小 */
-    .status-label {
-      font-size: 1rem !important;  /* 由1.2rem缩小 */
-      width: 50px !important;       /* 宽度缩小 */
-      margin-right: 6px !important;
-    }
-    /* 进度条宽度适当变宽一些，背景板不再扁 */
-    .status-bar {
-      width: 140px !important;  /* 由120px增宽 */
-      height: 18px !important;  /* 高度稍微变小点 */
-      border-radius: 8px !important;
-    }
+  .status-row {
+    flex-direction: column;
+    gap: 20px !important;
+  }
 
-    .status-item {
-        flex-direction: row;
-        justify-content: space-between;
-        min-width: 140px !important;  /* 由180px缩小 */
-        width: 100%;
-    }
-    /* 纯数值字体缩小 */
-    .plain-value {
-      font-size: 1rem !important;  /* 由1.2rem缩小 */
-      min-width: 60px !important;
-    }
+  .status-label {
+    font-size: 1rem !important;
+    width: 50px !important;
+    margin-right: 6px !important;
+  }
 
-    .step-container {
-        padding: 20px;
-        max-width: 100%;
-    }
-    /* 进度条文字字体缩小 */
-    .status-text {
-      font-size: 0.75rem !important;
-    }
+  .status-bar {
+    width: 140px !important;
+    height: 18px !important;
+    border-radius: 8px !important;
+  }
 
-    /* 保持进度条填充的padding适当 */
-    .status-fill {
-      padding-right: 6px !important;
-    }
+  .status-item {
+    flex-direction: row;
+    justify-content: space-between;
+    min-width: 140px !important;
+    width: 100%;
+  }
 
-    .region-selector {
-        grid-template-columns: repeat(2, 1fr); /* 从3列变2列 */
-        gap: 15px;
-    }
+  .plain-value {
+    font-size: 1rem !important;
+    min-width: 60px !important;
+  }
 
-    .region-card {
-        padding: 15px 10px;
-    }
+  .step-container {
+    padding: 20px;
+    max-width: 100%;
+  }
 
-    .chat-header {
-        height: auto;
-        flex-direction: column;
-        align-items: flex-start;
-        padding: 10px;
-    }
+  .status-text {
+    font-size: 0.75rem !important;
+  }
 
-    .chat-content-wrapper {
-        width: 100%;
-        padding: 5px;
-    }
+  .status-fill {
+    padding-right: 6px !important;
+  }
 
-    .chat-messages {
-        margin-top: 20px;
-    }
+  .region-selector {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 10px;
+  }
 
-    .chat-bottom-fixed {
-        height: auto;
-        padding: 10px 5px;
-    }
+  .region-card {
+    padding: 10px 5px;
+    border-radius: 10px;
+  }
 
-    .action-buttons-container {
-        flex-wrap: wrap;
-        gap: 10px;
-    }
+  .chat-header {
+    height: auto;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 10px;
+  }
 
-    .action-button {
-        max-width: 100px;
-        font-size: 12px;
-    }
+  .chat-content-wrapper {
+    width: 100% !important;
+    padding: 5px !important;
+    overflow-x: hidden !important;
+  }
 
-    .pet-preview {
-        width: 200px;
-        height: 200px;
-    }
+  .chat-messages {
+    margin-top: 100px;
+  }
 
-    .name-input {
-        font-size: 1.2rem;
-        padding: 10px;
-    }
+  .chat-bottom-fixed {
+    height: auto;
+    padding: 8px;
+  }
 
-    /* 步骤一【地域选择】适配 */
-    html, body {
-        overflow: hidden;
-    }
+  .action-buttons-container {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    padding: 5px 10px;
+    position: relative;
+    bottom: 0;
+  }
 
-    .step-container#region-selection {
-        padding: 10px;
-        box-sizing: border-box;
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
+  .action-button {
+    min-width: 90px;
+    max-width: 120px;
+    flex: none;
+    font-size: 12px;
+    padding: 6px 10px;
+  }
 
-    .step-title {
-        font-size: 1.5rem;
-        margin-bottom: 10px;
-    }
+  .pet-preview {
+    width: 180px;
+    height: 180px;
+    margin-bottom: 20px;
+  }
 
-    .step-description {
-        font-size: 1rem;
-        margin-bottom: 10px;
-    }
+  .name-input {
+    font-size: 1.2rem;
+    padding: 10px;
+  }
 
-    .region-selector {
-        grid-template-columns: repeat(3, 1fr); /* 每行三列 */
-        gap: 10px;
-        margin-bottom: 10px;
-    }
+  /* ✅ 地域选择容器滚动修复 */
+  .step-container#region-selection {
+    padding: 10px;
+    box-sizing: border-box;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
 
-    .region-card {
-        padding: 10px 5px;
-        border-radius: 10px;
-    }
+  .step-title {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+  }
 
-    .region-icon {
-        font-size: 2rem;
-        margin-bottom: 5px;
-    }
+  .step-description {
+    font-size: 1rem;
+    margin-bottom: 10px;
+  }
 
-    .region-name {
-        font-size: 1rem;
-        margin-bottom: 5px;
-    }
+  .region-icon {
+    font-size: 2rem;
+    margin-bottom: 5px;
+  }
 
-    .region-desc {
-        font-size: 0.8rem;
-        line-height: 1.2;
-    }
+  .region-name {
+    font-size: 1rem;
+    margin-bottom: 5px;
+  }
 
-    .btn {
-        padding: 10px 20px;
-        font-size: 1rem;
-        margin-top: 0;
-        align-self: center;
-    }
-    /* 页脚适配 */
-    footer {
-      font-size: 0.75rem;    /* ✅ 缩小文字尺寸 */
-      padding: 10px 5px;     /* ✅ 缩小内边距 */
-      text-align: center;    /* ✅ 居中对齐 */
-      line-height: 1.4;      /* ✅ 增加可读性 */
-      white-space: normal;   /* ✅ 防止文字横向被拉长 */
-    }
+  .region-desc {
+    font-size: 0.8rem;
+    line-height: 1.2;
+  }
 
-    /* 步骤二【宠物选择】适配 */
-    .pet-preview {
-      width: 180px;
-      height: 180px;
-      margin-bottom: 20px;
-    }
+  .btn {
+    padding: 10px 20px;
+    font-size: 1rem;
+    margin-top: 0;
+    align-self: center;
+  }
 
-    .pet-outline {
-      font-size: 3rem; /* 缩小占位图标字体 */
-      border-width: 3px; /* 减少边框厚度 */
-    }
+  footer {
+    font-size: 0.75rem;
+    padding: 10px 5px;
+    text-align: center;
+    line-height: 1.4;
+    white-space: normal;
+  }
 
-    .pet-description {
-      padding: 15px;
-      font-size: 0.9rem;
-      line-height: 1.5;
-      margin-bottom: 20px;
-    }
+  .pet-outline {
+    font-size: 3rem;
+    border-width: 3px;
+  }
 
-    .pet-description h3 {
-      font-size: 1.2rem;
-      margin-bottom: 10px;
-    }
-    /* 步骤四【宠物聊天】适配 */
-    #chat-interface.step-container {
-      margin: 0 !important;           /* 移除所有边距 */
-      padding: 0 !important;          /* 移除内边距（你可以酌情保留） */
-      width: 100% !important;        /* 占满整个视口宽度 */
-      max-width: 100% !important;
-      min-width: 100% !important;
-      height: calc(100vh - 50px) !important; /* 预留 50px 给页脚 */
-      border-radius: 0 !important;    /* 可选：移除圆角 */
-    }
+  .pet-description {
+    padding: 15px;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin-bottom: 20px;
+  }
 
-    .chat-content-wrapper {
-      width: 100% !important;
-      padding: 5px !important;
-      overflow-x: hidden !important; /* ✅ 禁止横向滚动 */
-    }
+  .pet-description h3 {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+  }
 
-    .chat-messages {
-      margin-top: 100px;      /* ✅ 减小上边距，给状态栏留点空间 */
-    }
+  #chat-interface.step-container {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 100% !important;
+    height: calc(var(--vh, 1vh) * 100 - 50px) !important;
+    border-radius: 0 !important;
+  }
 
-    .action-buttons-container {
-      flex-wrap: wrap;            /* ✅ 允许按钮换行 */
-      justify-content: center;
-      gap: 10px;
-      padding: 5px 10px;
-      position: relative;
-      bottom: 0;
-    }
+  .chat-input-area {
+    top: 0;
+    padding: 8px;
+  }
 
-    .action-button {
-      min-width: 90px;            /* ✅ 设置更适合手机的按钮宽度 */
-      max-width: 120px;
-      flex: none;
-      font-size: 12px;            /* ✅ 缩小文字 */
-      padding: 6px 10px;
-    }
+  .chat-input {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
 
-    .chat-bottom-fixed {
-      height: auto;               /* ✅ 高度自适应内容 */
-      padding: 8px;
-    }
+  .chat-input input {
+    font-size: 0.9rem;
+    padding: 10px 12px;
+    flex: 1;
+  }
 
-    .chat-input-area {
-      top: 0;
-      padding: 8px;
-    }
+  .chat-input button {
+    padding: 10px 16px;
+    font-size: 0.9rem;
+  }
 
-    .chat-input {
-      gap: 8px;
-    }
+  .avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+    margin: 0 10px;
+  }
 
-    .chat-input input {
-      font-size: 0.9rem;
-      padding: 10px 12px;
-    }
+  .content {
+    padding: 10px 14px;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    max-width: 85%;
+  }
 
-    .chat-input button {
-      padding: 10px 16px;
-      font-size: 0.9rem;
-    }
-    /* 聊天头像和聊天文字缩小 */
-    .avatar {
-      width: 40px;
-      height: 40px;
-      font-size: 18px;
-      margin: 0 10px;
-    }
-
-    .content {
-      padding: 10px 14px;
-      font-size: 0.95rem;
-      line-height: 1.4;
-      max-width: 85%;
-    }
-
-    .chat-title {
-      font-size: 1.5rem;
-    }
-
-
+  .chat-title {
+    font-size: 1.5rem;
+  }
 }
