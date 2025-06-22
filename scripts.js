@@ -50,11 +50,36 @@ const gameState = {
     volume: 0.8
   },
 
+  // BOSS 战状态
+  bossBattle: {
+    isFighting: false,
+    totalRounds: 0,
+    currentRound: 0,
+    rewardMultiplier: 1.0, // 根据回合数决定
+    bossName: ""
+  },
+
+  // 神秘任务状态
+  mysteryTask: {
+    isAccepted: false,
+    requiredRounds: 0,
+    currentRounds: 0
+  },
+
+  // 探索遗迹状态
+  ruinsExploration: {
+    isExploring: false,
+    currentRound: 0,
+    totalRounds: 0,
+    rewardMultiplier: 1.0
+  },
+
   // 提醒冷却控制（防止重复提醒）
   alertCooldown: {
     hunger: false,
     health: false
   }
+  
 };
 
 // 状态检测配置
@@ -239,7 +264,7 @@ const adventureEvents = {
   BOSS: {
     name: "BOSS战",
     triggers: ["遭遇巨大怪物", "发现区域守卫者", "遇到传说中的生物"],
-    options: ["正面战斗", "背后偷袭", "暂时撤退"],
+    options: ["勇敢挑战", "暂时撤退"],
   },
 
   NEXTCITY: {
@@ -517,67 +542,6 @@ function handleSendError(error, loadingId) {
     addMessageToChat('system', `（耳朵耷拉下来）${error.message || '连接出错啦'}`);
 }
 
-// 优化后的宠物数据获取 - 使用预加载数据
-async function getPetsForRegion(region) {
-    // 1. 先显示预加载数据
-    const pets = [...preloadedPets[region] || []];
-    
-    // 2. 异步尝试从Coze获取更多数据（不等待）
-    fetchPetsFromCoze(region).then(additionalPets => {
-        if (additionalPets.length > 0) {
-            // 更新缓存供下次使用
-            gameState.regionPetsCache[region] = [...pets, ...additionalPets];
-        }
-    }).catch(error => {
-        console.error("异步获取宠物数据失败:", error);
-    });
-    
-    return pets;
-}
-
-// 异步从Coze获取额外宠物数据
-async function fetchPetsFromCoze(region) {
-    try {
-        const regionName = regionData[region].name;
-        const prompt = `请提供3种生活在${regionName}的灵宠描述，每种用50-70字中文描述外貌和性格，直接返回数组格式，不要额外说明，例如：
-["描述1", "描述2", "描述3"]`;
-
-        const response = await fetch(cozeConfig.apiUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${cozeConfig.token}`,
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify({
-                conversation_id: gameState.conversationId + '_pets_' + region,
-                bot_id: cozeConfig.botId,
-                user: "user_123",
-                query: prompt,
-                stream: false
-            })
-        });
-
-        if (!response.ok) return [];
-
-        const data = await response.json();
-        if (!data.messages || !data.messages[0]?.content) return [];
-        
-        try {
-            // 安全解析JSON
-            const content = data.messages[0].content;
-            const parsed = JSON.parse(content.startsWith('[') ? content : `[${content}]`);
-            return Array.isArray(parsed) ? parsed.filter(desc => desc.length > 20) : [];
-        } catch (e) {
-            console.error("解析宠物数据失败:", e);
-            return [];
-        }
-    } catch (error) {
-        console.error("获取宠物数据出错:", error);
-        return [];
-    }
-}
-
 // 初始化游戏
 function initGame() {
   console.log("初始化游戏...");
@@ -687,7 +651,7 @@ function initGame() {
         updateUI();
         updateChatBackground();
         showStep('chat-interface');
-        // 新增：进入聊天界面后立即检测状态
+        // 新增：进入聊天界面后立即冒险检测状态
         startAdventure()
       }, 500);
     });
@@ -802,38 +766,6 @@ function updateStatsUI() {
   }
 }
 
-// 格式化大数字显示
-function formatExp(exp) {
-    if (exp < 1000) return exp.toString();
-    if (exp < 10000) return (exp/1000).toFixed(1) + 'K';
-    if (exp < 1000000) return Math.floor(exp/1000) + 'K';
-    if (exp < 10000000) return (exp/1000000).toFixed(1) + 'M';
-    return Math.floor(exp/1000000) + 'M+';
-}
-
-// 增加历练值
-function addExp(amount) {
-    gameState.pet.exp = Math.min(9999999, gameState.pet.exp + amount);
-    updateStatsUI();
-    
-    // 历练值增加时的特殊效果
-    if (amount > 0) {
-        flashExpBar();
-    }
-}
-
-// 历练值进度条闪光效果
-function flashExpBar() {
-    const expFill = document.querySelector('.exp-fill');
-    expFill.style.transition = 'none';
-    expFill.style.boxShadow = '0 0 10px #ffeb3b';
-    
-    setTimeout(() => {
-        expFill.style.transition = 'width 0.5s ease';
-        expFill.style.boxShadow = 'none';
-    }, 100);
-}
-
 // 初始化
 window.addEventListener('DOMContentLoaded', initGame);
 
@@ -851,6 +783,7 @@ function startAdventure() {
 
   triggerRandomAdventureEvent();
 }
+
 // 结束冒险检测
 function endAdventure() {
   gameState.pet.isAdventuring = false;
@@ -860,18 +793,80 @@ function endAdventure() {
 
 // 触发随机事件
 function triggerRandomAdventureEvent() {
+  console.log('[triggerRandomAdventureEvent] 开始触发随机冒险事件');
+
   const eventTypes = Object.keys(adventureEvents);
-  const randomKey = eventTypes[Math.floor(Math.random() * eventTypes.length)];
+  console.log('[triggerRandomAdventureEvent] 所有事件类型:', eventTypes);
+
+  // 根据是否接受神秘任务，过滤事件
+  const filteredEventTypes = gameState.mysteryTask.isAccepted
+    ? eventTypes.filter(type => {
+        const name = adventureEvents[type]?.name || '';
+        return name !== "神秘任务";
+      })
+    : eventTypes;
+  console.log('[triggerRandomAdventureEvent] 过滤后的事件类型:', filteredEventTypes);
+
+  if (filteredEventTypes.length === 0) {
+    console.warn('[triggerRandomAdventureEvent] 没有可用事件，退出');
+    return;
+  }
+
+  // 重新随机选择事件key
+  const randomKey = filteredEventTypes[Math.floor(Math.random() * filteredEventTypes.length)];
   const event = adventureEvents[randomKey];
+  console.log(`[triggerRandomAdventureEvent] 选中事件key: ${randomKey}`, event);
 
-  const trigger = event.triggers[Math.floor(Math.random() * event.triggers.length)];
-  const eventName = event.name || randomKey;
+  // 安全判断 triggers 是否存在且为数组
+  let trigger = '';
+  if (Array.isArray(event?.triggers) && event.triggers.length > 0) {
+    trigger = event.triggers[Math.floor(Math.random() * event.triggers.length)];
+    console.log(`[triggerRandomAdventureEvent] 选中触发文本: ${trigger}`);
+  } else {
+    console.warn(`[triggerRandomAdventureEvent] 事件 ${randomKey} 缺少触发文本 triggers，使用默认空字符串`);
+  }
 
-  // ✅ 构建自然语气的提示（口语化、拟人化）
-  const prompt = `你们当前处于异世界冒险中，触发了一个事件：${eventName}，背景是：${trigger}，请你以宠物的口吻自然描述你们遇到了什么情况，然后自然引导主人选择行动和选择，但不要暴露系统字段或提示格式。`;
+  const eventName = event?.name || randomKey;
+  console.log(`[triggerRandomAdventureEvent] 事件名称: ${eventName}`);
 
-  // ✅ 隐性发送事件信息
-  sendHiddenMessage('adventure_event', prompt, () => {
+  // 判断是否为 BOSS 战
+  if (typeof eventName === 'string' && eventName.includes("BOSS战")) {
+    const rounds = getRandomInRange(2, 6);
+    console.log(`[triggerRandomAdventureEvent] 识别为BOSS战，设置战斗回合数为: ${rounds}`);
+
+    gameState.bossBattle = {
+      isFighting: true,
+      totalRounds: rounds,
+      currentRound: 1,
+      rewardMultiplier: 1 + rounds * 0.2,
+      bossName: eventName
+    };
+  }
+
+  // 任务回合数增加及完成检测
+  if (gameState.mysteryTask?.isAccepted) {
+    gameState.mysteryTask.currentRounds = (gameState.mysteryTask.currentRounds || 0) + 1;
+    console.log(`[triggerRandomAdventureEvent] 任务进行中，当前回合: ${gameState.mysteryTask.currentRounds}/${gameState.mysteryTask.requiredRounds}`);
+
+    if (gameState.mysteryTask.currentRounds >= gameState.mysteryTask.requiredRounds) {
+      console.log('[triggerRandomAdventureEvent] 任务完成，调用handleMysteryTaskComplete');
+      handleMysteryTaskComplete();
+    }
+  }
+
+  // ⚠️ 如果是BOSS战，跳过通用提示逻辑，由 boss_fight 按钮负责后续处理
+  if (eventName.includes("BOSS战")) {
+    console.log('[triggerRandomAdventureEvent] BOSS战事件已触发，跳过通用提示处理');
+    return;
+  }
+
+  // 构建系统提示
+  const prompt = `你们当前处于异世界冒险中，触发了一个事件：${eventName}，背景是：${trigger}，请你以宠物的口吻自然描述你们遇到了什么情况，然后问主人接下来该怎么办，但不要暴露系统字段或提示格式。`;
+  console.log('[triggerRandomAdventureEvent] 构建提示:', prompt);
+
+  // 发送隐性消息，回调展示选项
+  sendHiddenMessage('adventure_event', prompt, (aiResponse) => {
+    applyStatusChanges({}, aiResponse);
     showAdventureOptions(eventName);
   });
 }
@@ -907,9 +902,8 @@ function showAdventureOptions(eventType) {
     "分岔路口": ["crossroad_left", "crossroad_middle", "crossroad_right"],
     "神秘遗迹": ["enter", "leave"],
     "宝箱": ["treasure_open", "check", "leave"],
-    "BOSS战(第一阶段)": ["boss_fight", "battle_trick", "run_away"],
-    "BOSS战(第二阶段)": ["boss_fight", "run_away"],
-    "新城镇": ["go_rest"],
+    "BOSS战": ["boss_fight", "run_away"],
+    "新城镇": ["go_rest", "continue_adventure"],
     "风景线": ["keep_memories", "move_on", "share"],
     "默认": ["continue_adventure", "rest"]
   };
@@ -930,7 +924,10 @@ function showAdventureOptions(eventType) {
     button.className = 'action-button adventure-btn button-appear';
     button.style.animationDelay = `${i * 0.1}s`;
 
+    // ✅ 正确绑定逻辑
     button.addEventListener('click', () => {
+      console.log(`点击了冒险选项: ${optionKey}`);
+      config.action();  // 执行原本定义的逻辑（包括 sendMessage）
       container.innerHTML = '';
     });
 
@@ -943,128 +940,38 @@ function showAdventureOptions(eventType) {
 //统一的所有冒险选项
 function showAdventureOptionsByKeys(keys) {
   const container = document.getElementById('action-buttons-container');
+  if (!container) {
+    console.error('按钮容器不存在');
+    return;
+  }
+  
   container.innerHTML = '';
-
-  keys.forEach(key => {
-    const config = buttonConfig[key];
-    if (config && (!config.condition || config.condition())) {
-      const button = document.createElement('button');
-      button.id = config.id;
-      button.innerHTML = config.text;
-      button.className = config.className;
-      button.addEventListener('click', config.action);
-      container.appendChild(button);
-    }
-  });
-}
-
-// 发送数据到Coze（增强版）
-function sendToCoze(message, eventType = null) {
-
-    // 或者选择特定字段
-    const stateData = {
-        hunger: gameState.pet.hunger,
-        health: gameState.pet.health,
-        bond: gameState.pet.bond
-    };
-
-  // 添加事件类型信息
-  const fullMessage = eventType 
-    ? `事件类型: ${eventType}\n${message}\n${stateString}`
-    : `${message}\n${stateString}`;
   
-    // 实际发送逻辑
-    console.log(`发送到Coze: ${action} | 状态: ${JSON.stringify(stateData)}`);
-}
-
-// 解析Coze响应中的状态变化
-function parseCozeResponse(response) {
-  // 检测状态变化模式
-  const statePattern = /\(状态变化：饥饿度([+-]\d+)，生命值([+-]\d+)，羁绊值([+-]\d+)\)/;
-  const match = response.match(statePattern);
+  // 过滤出可用的按钮配置
+  const availableButtons = keys
+    .map(key => buttonConfig[key])
+    .filter(config => config && (!config.condition || config.condition()));
   
-  if (match) {
-    const hungerChange = parseInt(match[1]);
-    const healthChange = parseInt(match[2]);
-    const bondChange = parseInt(match[3]);
-    
-    gameState.pet.hunger = Math.max(0, Math.min(100, gameState.pet.hunger + hungerChange));
-    gameState.pet.health = Math.max(0, Math.min(100, gameState.pet.health + healthChange));
-    increaseBond(bondChange);
-    
-    updateStatsUI();
+  if (availableButtons.length === 0) {
+    console.warn('没有可用的按钮配置');
+    container.style.display = 'none';
+    return;
   }
   
-  // 检测心情关键词
-  const moodKeywords = {
-    "开心": "happy",
-    "兴奋": "excited",
-    "悲伤": "sad",
-    "害怕": "scared",
-    "生气": "angry",
-    "疲倦": "tired"
-  };
-  
-  for (const [chinese, english] of Object.entries(moodKeywords)) {
-    if (response.includes(chinese)) {
-      gameState.pet.mood = english;
-      updateMoodUI();
-      break;
-    }
-  }
-}
-
-// 根据历练值获取心情等级
-function getMoodLevel() {
-    if (gameState.pet.exp < 100) return "陌生";
-    if (gameState.pet.exp < 1000) return "友好";
-    if (gameState.pet.exp < 5000) return "亲密";
-    if (gameState.pet.exp < 20000) return "信赖";
-    return "羁绊";
-}
-
-// 高羁绊值特殊互动
-function checkBondSpecialActions() {
-  if (gameState.pet.bond >= 600) {
-    // 解锁特殊冒险选项
-    document.getElementById('special-adventure').style.display = 'block';
-    
-    // 解锁特殊命令
-    addSpecialCommand("摸摸头", () => {
-      sendToCoze("用户互动：摸摸头");
-      increaseBond(5);
-    });
-    
-    addSpecialCommand("一起玩", () => {
-      sendToCoze("用户互动：一起玩");
-      increaseBond(10);
-      gameState.pet.hunger -= 5;
-      updateStatsUI();
-    });
-  }
-}
-
-// 添加特殊命令按钮
-function addSpecialCommand(name, action) {
-  const container = document.getElementById('special-actions');
-  if (!container.querySelector(`[data-cmd="${name}"]`)) {
+  // 创建并添加按钮
+  availableButtons.forEach((config, index) => {
     const button = document.createElement('button');
-    button.textContent = name;
-    button.dataset.cmd = name;
-    button.className = 'special-cmd';
-    button.addEventListener('click', action);
+    button.id = config.id;
+    button.innerHTML = config.text;
+    button.className = `${config.className} button-appear`;
+    button.style.animationDelay = `${index * 0.1}s`;
+    button.addEventListener('click', config.action);
     container.appendChild(button);
-  }
-}
-
-// 检查历练值里程碑
-function checkExpMilestones() {
-    const milestones = [100, 1000, 5000, 20000, 100000];
-    milestones.forEach(ms => {
-        if (gameState.pet.exp >= ms && gameState.pet.exp - lastExp < ms) {
-            sendToCoze(`系统提示：达成历练里程碑 ${formatExp(ms)}`);
-        }
-    });
+  });
+  
+  // 确保容器可见
+  container.style.display = 'flex';
+  console.log('显示按钮:', keys);
 }
 
 // 按钮配置
@@ -1142,10 +1049,7 @@ const buttonConfig = {
     text: '<i class="fas fa-sword"></i> 正面战斗',
     className: 'action-button battle-option',
     condition: () => gameState.pet.isAdventuring,
-    action: () => {
-      sendMessage("（怒吼一声）冲上去正面战斗！", 'user');
-      hideAllButtons();
-    }
+    action: () => handleAdventureAction('battle_attack', '（怒吼一声）冲上去正面战斗！')
   },
   /* 背后偷袭 */
   battle_trick: {
@@ -1153,10 +1057,7 @@ const buttonConfig = {
     text: '<i class="fas fa-user-ninja"></i> 背后偷袭',
     className: 'action-button battle-option',
     condition: () => gameState.pet.isAdventuring,
-    action: () => {
-      sendMessage("（悄悄绕后）试试从背后偷袭...", 'user');
-      hideAllButtons();
-    }
+    action: () => handleAdventureAction('battle_trick', '（悄悄绕后）试试从背后偷袭...')
   },
   /* 绕路离开 */
   leave: {
@@ -1164,10 +1065,7 @@ const buttonConfig = {
     text: '<i class="fas fa-door-open"></i> 绕路离开',
     className: 'action-button leave-btn',
     condition: () => gameState.pet.isAdventuring,
-    action: () => {
-      sendMessage("（默默的走开了）", 'user');
-      hideAllButtons();
-    }
+    action: () => handleAdventureAction('leave', '（默默的走开了）')
   },
 
   /* 购买物品 */
@@ -1176,10 +1074,7 @@ const buttonConfig = {
     text: '<i class="fas fa-shopping-cart"></i> 购买物品',
     className: 'action-button merchant-option',
     condition: () => gameState.pet.isAdventuring,
-    action: () => {
-      sendMessage("（翻找金币）我想买这个！", 'user');
-      hideAllButtons();
-    }
+    action: () => handleAdventureAction('merchant_buy', '（翻找金币）我想买这个！')
   },
 
   /* 走左边 */
@@ -1188,10 +1083,7 @@ const buttonConfig = {
     text: '<i class="fas fa-arrow-left"></i> 走左边',
     className: 'action-button crossroad-option',
     condition: () => gameState.pet.isAdventuring,
-    action: () => {
-      sendMessage("（指向左边）我们走这边看看吧！", 'user');
-      hideAllButtons();
-    }
+    action: () => handleAdventureAction('crossroad_left', '（指向左边）我们走这边看看吧！')
   },
   /* 走中间 */
   crossroad_middle: {
@@ -1199,10 +1091,7 @@ const buttonConfig = {
     text: '	<i class="fas fa-arrow-up"></i> 走中间',
     className: 'action-button crossroad-option',
     condition: () => gameState.pet.isAdventuring,
-    action: () => {
-      sendMessage("（指向中间）我们走这边看看吧！", 'user');
-      hideAllButtons();
-    }
+    action: () => handleAdventureAction('crossroad_middle', '（指向中间）我们走这边看看吧！')
   },
   /* 走右边 */
   crossroad_right: {
@@ -1210,10 +1099,7 @@ const buttonConfig = {
     text: '<i class="fas fa-arrow-right"></i> 走右边',
     className: 'action-button crossroad-option',
     condition: () => gameState.pet.isAdventuring,
-    action: () => {
-      sendMessage("（指向右边）我们走这边看看吧！", 'user');
-      hideAllButtons();
-    }
+    action: () => handleAdventureAction('crossroad_right', '（指向右边）我们走这边看看吧！')
   },
 
   /* 接受任务 */
@@ -1223,7 +1109,18 @@ const buttonConfig = {
     className: 'action-button treasure-option',
     condition: () => gameState.pet.isAdventuring,
     action: () => {
-      sendMessage("（拍了拍胸脯，眼神坚定地说）这个任务我包了！", 'user');
+      // ✅ 初始化任务状态，随机神秘任务次数
+      const rounds = getRandomInRange(5, 12);
+      gameState.mysteryTask.isAccepted = true;
+      gameState.mysteryTask.requiredRounds = rounds;
+      gameState.mysteryTask.currentRounds = 0;
+
+      addMessageToChat('user',"（郑重点头）任务我接下了，出发吧！");
+      
+      // ✅ 提示任务已接受
+      addMessageToChat('system', `（坚定地看着你）任务已接下，咱们现在就出发前往目标地点吧！`);
+      // ✅ 进入下一次冒险
+      triggerRandomAdventureEvent();
       hideAllButtons();
     }
   },
@@ -1234,10 +1131,7 @@ const buttonConfig = {
     text: '<i class="fas fa-box-open"></i> 直接打开',
     className: 'action-button treasure-option',
     condition: () => gameState.pet.isAdventuring,
-    action: () => {
-      sendMessage("（迫不及待）赶快打开看看有什么！", 'user');
-      hideAllButtons();
-    }
+    action: () => handleAdventureAction('treasure_open', '（迫不及待）赶快打开看看有什么！')
   },
 
   /* 小心检查 */
@@ -1246,10 +1140,7 @@ const buttonConfig = {
     text: '<i class="fas fa-search"></i> 小心检查',
     className: 'action-button check-btn',
     condition: () => gameState.pet.isAdventuring,
-    action: () => {
-      sendMessage("（眉头微微皱起，眼神专注而认真的在检查宝箱）", 'user');
-      hideAllButtons();
-    }
+    action: () => handleAdventureAction('check', '（眉头微微皱起，眼神专注而认真的在检查宝箱）')
   },
 
   /* 进入探索 */
@@ -1259,9 +1150,8 @@ const buttonConfig = {
     className: 'action-button enter-btn',
     condition: () => gameState.pet.isAdventuring,
     action: () => {
-      sendMessage("（眼神兴奋地说）走，咱们去探探！", 'user');
-      hideAllButtons();
-    }
+    enterMysteryRuinsExploration(); // ✅ 仅处理神秘遗迹探索
+  }
   },
 
   /* 勇敢挑战 */
@@ -1271,8 +1161,69 @@ const buttonConfig = {
     className: 'action-button boss-option',
     condition: () => gameState.pet.isAdventuring,
     action: () => {
-      sendMessage("（毛发竖起）来战斗吧！", 'user');
-      hideAllButtons();
+      const userText = "（怒吼一声）冲上去正面战斗！";
+
+        // 只扣血和体力，不给奖励
+        const result = {
+          health: getRandomInRange(-20, -5),
+          hunger: getRandomInRange(-5, 0),
+          gold: 0,
+          bond: 0
+        };
+
+        console.log('[boss_fight] 当前回合:', gameState.bossBattle.currentRound);
+        console.log('[boss_fight] 总回合数:', gameState.bossBattle.totalRounds);
+        console.log('[boss_fight] 本次扣除状态:', result);
+
+        // 构造 prompt
+        const round = gameState.bossBattle.currentRound;
+        const total = gameState.bossBattle.totalRounds;
+        const prompt = `
+          这是与 ${gameState.bossBattle.bossName} 的第 ${round} 回合战斗。
+          玩家选择了正面战斗，损失 ${-result.health} 点生命，消耗 ${-result.hunger} 点体力。
+          请描述当前战斗场面，并说明 BOSS 是否显露出疲态。
+
+          如果还未打败 BOSS，请引导玩家继续战斗；如果是最后一回合，请描述 BOSS 被击败的场面。
+          `;
+
+        sendMessage(userText, 'user');
+
+        console.log('[boss_fight] 已发送玩家输入:', userText);
+        console.log('[boss_fight] 发送系统提示至 Coze:', prompt);
+
+        sendHiddenMessage('boss_battle', prompt, (aiResponse) => {
+          applyStatusChanges(result, aiResponse);
+
+          if (round >= total) {
+            // BOSS 被打败
+            const gold = Math.floor(getRandomInRange(20, 50) * gameState.bossBattle.rewardMultiplier);
+            const bond = Math.floor(getRandomInRange(10, 20) * gameState.bossBattle.rewardMultiplier);
+            const finalReward = {
+              gold: Math.floor(gold),
+              bond: Math.floor(bond),
+              health: 0,
+              hunger: 0
+            };
+
+            const victoryPrompt = `
+              玩家在第 ${round} 回合成功击败了 ${gameState.bossBattle.bossName}！
+              奖励金币：${finalReward.gold}，历练值：${finalReward.bond}。
+              请用系统语气描述胜利场景，并感谢玩家的英勇。
+              `;
+
+            sendHiddenMessage('boss_victory', victoryPrompt, (response) => {
+              applyStatusChanges(finalReward, response);
+              gameState.bossBattle.isFighting = false;
+              showAdventureOptionsByKeys(['continue_adventure', 'rest']);
+            });
+          } else {
+            // 下一回合
+            gameState.bossBattle.currentRound++;
+            showAdventureOptionsByKeys(['boss_fight', 'battle_trick', 'run_away']);
+          }
+        });
+
+        hideAllButtons();
     }
   },
 
@@ -1283,8 +1234,18 @@ const buttonConfig = {
     className: 'action-button leave-btn',
     condition: () => gameState.pet.isAdventuring,
     action: () => {
-      sendMessage("（有些惊慌）快跑！", 'user');
-      hideAllButtons();
+        sendMessage("（我们快逃！）", 'user');
+        
+        const prompt = `玩家在第 ${gameState.bossBattle.currentRound} 回合中选择了逃跑，终止了与 ${gameState.bossBattle.bossName} 的战斗。
+      请描述他们仓皇逃跑的情景，并建议稍作休整后再冒险。`;
+
+        sendHiddenMessage('boss_escape', prompt, (aiResponse) => {
+          applyStatusChanges({}, aiResponse);
+          gameState.bossBattle.isFighting = false;
+          showAdventureOptionsByKeys(['continue_adventure', 'rest']);
+        });
+
+        hideAllButtons();
     }
   },
 
@@ -1294,10 +1255,7 @@ const buttonConfig = {
     text: '<i class="fas fa-camera"></i> 拍照留念',
     className: 'action-button keep_memories',
     condition: () => gameState.pet.isAdventuring,
-    action: () => {
-      sendMessage("（兴奋地指着风景）合影留念一下吧~", 'user');
-      hideAllButtons();
-    }
+    action: () => handleAdventureAction('keep_memories', '（兴奋地指着风景）合影留念一下吧~')
   },
   /* 继续赶路 */
   move_on: {
@@ -1305,10 +1263,7 @@ const buttonConfig = {
     text: '<i class="fas fa-running"></i> 继续赶路',
     className: 'action-button move_on',
     condition: () => gameState.pet.isAdventuring,
-    action: () => {
-      sendMessage("（指指远方）从那边走吧！", 'user');
-      hideAllButtons();
-    }
+    action: () => handleAdventureAction('move_on', '（指指远方）从那边走吧！')
   },
   /* 积极分享 */
   share: {
@@ -1316,10 +1271,7 @@ const buttonConfig = {
     text: '<i class="fas fa-share-alt"></i> 积极分享',
     className: 'action-button share-btn',
     condition: () => gameState.pet.isAdventuring,
-    action: () => {
-      sendMessage("（我要分享给所有人）", 'user');
-      hideAllButtons();
-    }
+    action: () => handleAdventureAction('share', '（我要分享给所有人）')
   },
   /* 前往休息 */
   go_rest: {
@@ -1327,80 +1279,207 @@ const buttonConfig = {
     text: '<i class="fas fa-bed"></i> 前往休息',
     className: 'action-button go-rest',
     condition: () => gameState.pet.isAdventuring,
-    action: () => {
-      sendMessage("（伸了个懒腰）终于到新城镇了，去逛逛，再休息会儿。", 'user');
-      hideAllButtons();
-    }
+    action: () => handleAdventureAction('go_rest', '（伸了个懒腰）终于到新城镇了，去逛逛，再休息会儿。')
   },
 
 };
 
-// 应用效果函数
-function applyEffects(effects) {
-  if (effects.health) {
-    gameState.pet.stats.health = Math.max(0, 
-      Math.min(100, gameState.pet.stats.health + effects.health));
-  }
-  if (effects.hunger) {
-    gameState.pet.stats.hunger = Math.max(0, 
-      Math.min(100, gameState.pet.stats.hunger + effects.hunger));
-  }
-  if (effects.bond) {
-    gameState.pet.stats.bond = Math.max(0, 
-      gameState.pet.stats.bond + effects.bond);
-  }
-  
-  updateUI(); // 更新UI反映状态变化
+// ✅ 冒险按钮点击应用（结果处理 + UI更新 + 状态反馈）
+function handleAdventureAction(actionType, userText) {
+  console.log(`🔵[handleAdventureAction] 玩家选择了冒险行为: ${actionType}`);
+  console.log('🗨️[handleAdventureAction] 玩家输入:', userText);
+
+  // ① 玩家发言
+  addMessageToChat('user', userText);
+
+  // ② 计算属性变化
+  const result = getRandomStatChange(actionType);
+  console.log('🔸[handleAdventureAction] 计算的状态变化:', result);
+
+  // ③ 构造简洁的结果总结，用于给 AI 构思剧情
+  const summary = buildResultSummary(result);
+  console.log('📄[handleAdventureAction] 结果总结 summary:', summary);
+
+  // ④ 构造 prompt 给 AI（系统口吻 + 简单总结）
+  const prompt = `他选择了 ${actionType}，结果是：${summary}。请用宠物语气描述他到底遭遇了什么事情，并以口语化风格对玩家展示出来。`;
+  console.log('🟣[handleAdventureAction] 构造 AI 提示 prompt:', prompt);
+
+  // ⑤ 通过 sendHiddenMessage 发送 prompt，并在回调中更新状态
+  sendHiddenMessage('adventure_result', prompt, (aiResponse) => {
+    if (!aiResponse) return;
+    // ✅ 应用实际状态变化（生命、金币、饥饿等）
+    applyStatusChanges(result, aiResponse);
+    // 显示后续按钮
+    showAdventureOptionsByKeys(['continue_adventure', 'rest']);
+  });
+
+  // 防止重复点击
+  hideAllButtons();
+}
+
+//神秘任务完成函数
+function handleMysteryTaskComplete() {
+  const times = gameState.mysteryTask.requiredRounds;
+  const baseGold = getRandomInRange(30, 80);
+  const baseBond = getRandomInRange(5, 10);
+
+  const finalGold = Math.floor(baseGold * times);
+  const finalBond = Math.floor(baseBond * times);
+
+  // ✅ 清除任务状态
+  gameState.mysteryTask = {
+    isAccepted: false,
+    requiredRounds: 0,
+    currentRounds: 0
+  };
+
+  // ✅ 状态变化应用
+  const reward = {
+    gold: finalGold,
+    bond: finalBond,
+    hunger: 0,
+    health: 0
+  };
+
+  // ✅ 状态更新
+  applyStatusChanges(reward, `恭喜你完成了本次的神秘任务，获得了 ${finalGold} 金币与 ${finalBond} 成就点！`);
 }
 
 // 更新操作按钮
 function updateActionButtons() {
   const container = document.getElementById('action-buttons-container');
-  if (!container) return;
+  if (!container) {
+    console.warn('🟥[updateActionButtons] 找不到按钮容器');
+    return;
+  }
 
   container.innerHTML = '';
-
   const buttonsToShow = [];
 
-  // 1. 优先显示状态修复按钮
+  console.log('🔵[updateActionButtons] 正在更新按钮...');
+  console.log('🔸当前状态: ', gameState.pet.stats);
+
+  // ✅ 特例1：冒险中，刚完成事件选项（没有事件在进行中）
+  if (gameState.pet.isAdventuring && gameState.currentEvent == null) {
+    console.log('🟣[updateActionButtons] 冒险阶段中 → 显示继续冒险 & 去休息');
+    buttonsToShow.push(buttonConfig.continue_adventure); // 继续冒险
+    buttonsToShow.push(buttonConfig.rest);     // 去休息
+    renderActionButtons(buttonsToShow);
+    return;
+  }
+
+  // ✅ 特例2：状态过差时的必要按钮
   if (gameState.pet.stats.health < STATUS_THRESHOLDS.health) {
+    console.log('🟡[updateActionButtons] 生命值偏低 → 添加休息按钮');
     buttonsToShow.push(buttonConfig.rest);
   }
 
   if (gameState.pet.stats.hunger < STATUS_THRESHOLDS.hunger) {
+    console.log('🟡[updateActionButtons] 饥饿度偏低 → 添加喂食按钮');
     buttonsToShow.push(buttonConfig.feed);
   }
 
-  // 2. 如果没有临界状态按钮，显示其他常规按钮
+  // ✅ 如果以上都不满足，只显示可用按钮中带条件的非隐藏按钮（手动控制按钮组）
   if (buttonsToShow.length === 0) {
-    const candidateButtons = Object.values(buttonConfig).filter(btn =>
-      btn.id !== 'rest-btn' &&
-      btn.id !== 'feed-btn' &&
-      btn.condition?.()
-    );
-
-    const adventureBtn = candidateButtons.find(btn => btn.id === 'adventure-btn');
-
-    // ✅ 如果冒险按钮可显示且未提示过，则先让 AI 提议
-    if (adventureBtn && !gameState._hasPromptedAdventure && !gameState.pet.isAdventuring) {
-      gameState._hasPromptedAdventure = true;
-
-      const prompt = `宠物状态良好，准备好了冒险。请以宠物语气向用户提出去冒险的建议，不要暴露系统字段。`;
-      sendHiddenMessage('adventure_invite', prompt, () => {
-        // 等待 AI 提示完，再显示按钮
-        buttonsToShow.push(adventureBtn);
-        renderActionButtons(buttonsToShow);
-      });
-
-      return; // ⛔ 停止立即渲染，等待 AI 提示完成
-    }
-
-    // 否则正常添加所有符合条件的按钮
-    buttonsToShow.push(...candidateButtons);
+    const contextButtons = Object.values(buttonConfig).filter(btn => btn.condition?.());
+    console.log('🔸使用自定义上下文按钮:', contextButtons.map(b => b.id));
+    buttonsToShow.push(...contextButtons);
   }
 
-  // ✅ 渲染按钮（最多显示 3 个）
-  renderActionButtons(buttonsToShow.slice(0, 3));
+  console.log('✅[updateActionButtons] 最终渲染按钮:', buttonsToShow.map(b => b.id));
+  renderActionButtons(buttonsToShow.slice(0, 4));
+}
+
+
+// 进入神秘遗迹探索状态
+function enterMysteryRuinsExploration() {
+  // ✅ 玩家说话（只显示，不发送给 AI）
+  addMessageToChat('user', '（眼神兴奋地说）走，咱们去探探！');
+
+  // ✅ 随机生成探索长度
+  const rounds = getRandomInRange(8, 16);
+  gameState.ruinsExploration = {
+    isExploring: true,
+    currentRound: 0,
+    totalRounds: rounds,
+    rewardMultiplier: 1 + rounds * 0.3,
+    hasTriggeredFinalTreasure: false
+  };
+
+  console.log(`[神秘遗迹] 开始探索，总回合数：${rounds}`);
+  //✅ 随机事件
+  triggerRuinsEvent();
+}
+
+
+// 触发神秘遗迹中的冒险事件
+function triggerRuinsEvent() {
+  const { currentRound, totalRounds } = gameState.ruinsExploration;
+
+  gameState.ruinsExploration.currentRound++;
+  const roundNow = gameState.ruinsExploration.currentRound;
+
+  // ✅ 最后一回合为宝箱事件
+  if (roundNow === totalRounds) {
+    triggerFixedEvent('宝箱');
+    return;
+  }
+
+  // ✅ 遗迹期间的事件池（权重调整）
+  const weightedEvents = [
+    { key: '战斗事件', weight: 4 },
+    { key: '分岔路口', weight: 4 },
+    { key: '宝箱', weight: 1 },
+    { key: 'BOSS战', weight: 2 }
+  ];
+
+  const selectedKey = weightedRandom(weightedEvents);
+  triggerFixedEvent(selectedKey);
+}
+
+// 固定触发某类事件（用于遗迹控制）
+function triggerFixedEvent(eventName) {
+  // 创建名称映射表
+  const nameMap = {
+    '战斗事件': 'BATTLE',
+    '分岔路口': 'CROSSROAD',
+    '宝箱': 'TREASURE',
+    'BOSS战': 'BOSS'
+  };
+
+  const eventKey = nameMap[eventName] || eventName;
+  const event = adventureEvents[eventKey];
+  
+  if (!event) return console.warn(`[神秘遗迹] 未找到事件：${eventName}`);
+
+  const trigger = event.triggers[Math.floor(Math.random() * event.triggers.length)];
+  const prompt = `神秘遗迹探索中，你们遭遇了事件：${event.name}，背景是：${trigger}，请用宠物语气进行自然描述，并引导玩家选择。`;
+
+  sendHiddenMessage('adventure_event', prompt, (aiResponse) => {
+    applyStatusChanges({}, aiResponse);
+    showAdventureOptions(event.name);
+  });
+}
+
+// 宝箱事件处理完毕后的结算逻辑
+function completeRuinsExploration() {
+  const reward = Math.floor(30 * gameState.ruinsExploration.rewardMultiplier);
+  updatePetStats({ achievement: reward });
+  gameState.ruinsExploration = null;
+  const prompt = `恭喜你完成神秘遗迹的探索，获得了 ${reward} 点成就奖励！你们的冒险旅程变得更加传奇。`;
+  sendHiddenMessage('system', prompt, (aiResponse) => {
+    applyStatusChanges({}, aiResponse);
+    showAdventureOptionsByKeys(['continue_adventure', 'rest']);
+  });
+}
+
+// 状态判断：遗迹中排除普通事件
+function getAvailableAdventureEvents() {
+  if (gameState.ruinsExploration?.isExploring) return null; // 用 triggerRuinsEvent 控制
+  if (gameState.mysteryTask?.isAccepted) {
+    return Object.keys(adventureEvents).filter(type => adventureEvents[type].name !== '神秘任务');
+  }
+  return Object.keys(adventureEvents);
 }
 
 
@@ -1450,25 +1529,6 @@ function handleButtonClick(buttonId) {
       button.action();
     }
   }
-}
-
-// 处理事件选项
-function handleEventOption() {
-  const eventKeys = Object.keys(gameEvents);
-  const randomKey = eventKeys[Math.floor(Math.random() * eventKeys.length)];
-  triggerEvent(randomKey);
-}
-
-// 触发新事件
-function triggerEvent(eventId) {
-  gameState.currentEvent = eventId;
-  const event = gameEvents[eventId];
-  
-  // 发送事件描述到Coze
-  sendToCoze(`遇到事件：${event.name}`);
-  
-  // 更新UI显示选项按钮
-  updateActionButtons();
 }
 
 // 修改定时检测函数，移除updateActionButtons调用
@@ -1559,13 +1619,15 @@ function triggerPetAlert(type, currentValue) {
 
   const message = messages[type][Math.floor(Math.random() * messages[type].length)];
 
-  sendHiddenMessage(type, message, () => {
+  sendHiddenMessage(type, message, (aiResponse) => {
+    applyStatusChanges({}, aiResponse, true);
     updateActionButtons();
   });
 }
 
-// 隐性消息发送（玩家不可见）
+// ✅ 隐性消息发送（玩家不可见）
 function sendHiddenMessage(type, content, callback) {
+  // ✅ 构造提示词
   const loadingId = `loading-${type}`;
 
   // ✅ 显示加载动画
@@ -1574,88 +1636,80 @@ function sendHiddenMessage(type, content, callback) {
   const currentValue = gameState.pet?.stats?.[type] ?? '-';
   const prompt = `[SYSTEM_ALERT]类型:${type},当前值:${currentValue}[/SYSTEM_ALERT]${content}`;
 
-  // ✅ 打印日志（便于调试）
-  console.log(`[sendHiddenMessage] 准备发送系统提示:`);
-  console.log("类型:", type);
-  console.log("当前值:", currentValue);
-  console.log("发送内容:", prompt);
+  // ✅ 标记唯一追踪ID（避免并发混乱）
+  const traceId = `${type}-${Date.now()}`;
+  console.log(`🟡[sendHiddenMessage][${traceId}] 准备发送系统提示`);
+  console.log(`🔸类型: ${type}`);
+  console.log(`🔸当前值: ${currentValue}`);
+  console.log(`🔸发送内容:\n${prompt}`);
 
   callCozeAPI(prompt).then(response => {
-    // ✅ 隐藏加载动画
     hideLoadingIndicator(loadingId);
 
-    console.log(`[sendHiddenMessage] Coze返回原始响应:`, response);
+    // ✅ 提取清洗后的文本
+    const cleanResponse = (typeof response === 'string')
+      ? response.replace(/\[.*?\]/g, '')
+      : cleanCozeResponse(response); 
 
-    const cleanResponse = response.replace(/\[.*?\]/g, '');
-    console.log(`[sendHiddenMessage] 清洗后内容:`, cleanResponse);
+    console.log(`🔹[sendHiddenMessage][${traceId}] 清洗后内容:\n${cleanResponse}`);
 
-    showPetAlert(cleanResponse, type);
-
-    if (callback) callback();
+    // ✅ 传入回调
+    if (typeof callback === 'function') {
+      console.log(`🔸[sendHiddenMessage][${traceId}] 调用回调函数`);
+      callback(cleanResponse);
+    }
 
   }).catch(err => {
     hideLoadingIndicator(loadingId);
-    console.error("[sendHiddenMessage] 调用失败：", err);
+    console.error(`🔴[sendHiddenMessage][${traceId}] 调用失败:`, err);
   });
-}
-
-
-// 显示宠物提醒
-function showPetAlert(message, alertType) {
-  const alert = document.createElement('div');
-  alert.className = `message system`; // 使用system类而不是system-alert
-  alert.innerHTML = `
-    <div class="avatar">
-      <i class="fas fa-dragon"></i> <!-- 使用宠物头像 -->
-    </div>
-    <div class="content">${message}</div>
-  `;
-  
-  document.getElementById('messages').appendChild(alert);
-  alert.scrollIntoView({ behavior: 'smooth' });
 }
 
 //AI响应处理
 function processAIResponse(response, actionType = null) {
-    // 1. 响应内容清洗（增强版）
-    let cleanResponse = cleanCozeResponse(response);
+    console.log('🔵[processAIResponse] 开始处理 AI 响应');
     
-    // 2. 状态变更处理
+    // 1. 响应内容清洗（增强版）
+    console.log('🟡[processAIResponse] 原始响应:', response);
+    let cleanResponse = cleanCozeResponse(response);
+    console.log('🟢[processAIResponse] 清洗后响应:\n', cleanResponse);
+
+    // 2. 状态变更处理（如果有动作类型）
     if (actionType) {
+        console.log('🔸[processAIResponse] 动作类型:', actionType);
+
         const changes = calculateChanges(actionType, cleanResponse);
+        console.log('🔸[processAIResponse] 计算出的状态变化:', changes);
+
         applyStatusChanges(changes, cleanResponse);  // ✅ 已自动触发后续检查
         return;
     }
 
     // 3. 普通消息显示
+    console.log('🟣[processAIResponse] 无状态变更，仅显示普通回复');
     displayPetResponse(cleanResponse);
 }
 
-// 替换原来的updatePetStats调用
+// 修改宠物状态值（如生命值、饥饿度、金币、历练值）
 function updatePetStats(changes) {
-    // 确保gameState存在
-    if (!gameState.pet) {
-        console.error("游戏状态未初始化");
-        return;
-    }
-
-    // 更新数值（带安全校验）
-    const stats = gameState.pet.stats;
-    if (changes.hunger) {
-        stats.hunger = Math.min(100, Math.max(0, stats.hunger + changes.hunger));
-    }
-    if (changes.mood) {
-        gameState.pet.mood = Math.min(100, Math.max(0, (gameState.pet.mood || 50) + changes.mood));
-    }
-
-    // 更新UI显示
-    updateStatsUI();
-    
-    // 调试日志
-    console.log("状态更新：", {
-        hunger: stats.hunger,
-        mood: gameState.pet.mood
-    });
+  if (!gameState.pet) {
+    console.error("游戏状态未初始化");
+    return;
+  }
+  console.log("接收到的变化:", changes);
+  const stats = gameState.pet.stats;
+  
+  // 更新所有属性（带边界检查）
+    if (changes.hunger !== undefined) stats.hunger = Math.min(100, Math.max(0, stats.hunger + changes.hunger));
+    if (changes.health !== undefined) stats.health = Math.min(100, Math.max(0, stats.health + changes.health));
+    if (changes.gold !== undefined) stats.gold = Math.max(0, stats.gold + changes.gold);
+    if (changes.bond !== undefined) stats.bond = Math.max(0, stats.bond + changes.bond);
+  // 调试日志
+  console.log("最终状态:", stats);
+  
+  // 保存状态并更新UI
+  saveGameState();
+  updateStatsUI();
 }
 
 // ========== 工具函数 ==========
@@ -1690,32 +1744,76 @@ function calculateChanges(actionType, response) {
     return baseChanges;
 }
 
-function applyStatusChanges(changes, response) {
-    // 更新状态
-    updatePetStats(changes);
-
-    // 构建状态变化信息
+// 应用结果到玩家状态
+function applyStatusChanges(changes, response, suppressCheck = false) {
+    console.log('🔸[applyStatusChanges] 输入 changes:', changes);
+    
+    // 1. 验证并过滤掉0值变化
+    const filteredChanges = {};
+    Object.keys(changes).forEach(key => {
+        if (changes[key] !== 0) {
+            filteredChanges[key] = changes[key];
+        }
+    });
+    
+    // 2. 应用状态变化
+    updatePetStats(changes); // 仍然应用原始changes确保数据正确
+    
+    // 3. 处理响应消息
+    const cleanResponse = response.replace(/\(状态变化[^)]*\)/g, '').trim();
+    
+    // 4. 构建状态提示（自动过滤0值）
     const statusMsg = buildStatusMessage(changes);
     
-    // 构建显示内容：原文 + 状态变化（换行）
-    const displayText = response.replace(/\[.*?\]/g, '').trim();
+    // 5. 组合最终消息
+    const displayText = statusMsg ? `${cleanResponse} ${statusMsg}` : cleanResponse;
     
-    // 使用 <br> 实现换行（HTML 环境中比 \n 更安全）
-    const finalText = statusMsg ? `${displayText}<br><br>${statusMsg}` : displayText;
+    // 6. 显示消息
+    addMessageToChat('system', displayText || "（轻轻蹭了蹭你）");
+    
+    // 7. 👇 根据 suppressCheck 参数决定是否再次检查关键状态
+    if (!suppressCheck) {
+      checkCriticalStatus();
+    }
 
-    // 显示整合后的消息
-    addMessageToChat('system', finalText || "（轻轻蹭了蹭你）");
-    // ✅ 状态更新后触发关键事件判断
-    checkCriticalStatus();
-    // 这会自动判断是否向 AI 提议冒险
-    updateActionButtons();  
+    // 8. 更新按钮
+    updateActionButtons();
 }
 
+//给 AI 的提示用。简洁摘要（用于生成 prompt）
 function buildStatusMessage(changes) {
     const parts = [];
-    if (changes.hunger) parts.push(`饥饿度${changes.hunger > 0 ? '+' : ''}${changes.hunger}`);
-    if (changes.mood) parts.push(`心情${changes.mood > 0 ? '+' : ''}${changes.mood}`);
-    return parts.length ? `（状态变化：${parts.join('，')}）` : null;
+    
+    // 只显示非零的变化值
+    if (changes.health !== undefined && changes.health !== 0) {
+        parts.push(`生命值${changes.health > 0 ? '+' : ''}${changes.health}`);
+    }
+    if (changes.hunger !== undefined && changes.hunger !== 0) {
+        parts.push(`饥饿度${changes.hunger > 0 ? '+' : ''}${changes.hunger}`);
+    }
+    if (changes.gold !== undefined && changes.gold !== 0) {
+        parts.push(`金币${changes.gold > 0 ? '+' : ''}${changes.gold}`);
+    }
+    if (changes.bond !== undefined && changes.bond !== 0) {
+        parts.push(`历练值${changes.bond > 0 ? '+' : ''}${changes.bond}`);
+    }
+    
+    return parts.length ? `（${parts.join('，')}）` : null;
+}
+
+//给玩家看的详细状态变化（HTML换行格式）
+function buildResultSummary(result) {
+  const parts = [];
+
+  if (result.health < 0) parts.push(`受到了 ${-result.health} 点伤害`);
+  if (result.hunger < 0) parts.push(`消耗了 ${-result.hunger} 点体力`);
+  if (result.gold > 0) parts.push(`获得了 ${result.gold} 枚金币`);
+  if (result.bond > 0) parts.push(`历练值增加了 ${result.bond} 点`);
+  if (result.health > 0) parts.push(`恢复了 ${result.health} 点生命`);
+  if (result.hunger > 0) parts.push(`恢复了 ${result.hunger} 点体力`);
+  if (result.gold < 0) parts.push(`损失了 ${-result.gold} 枚金币`);
+  
+  return parts.join('，');
 }
 
 function displayPetResponse(response) {
@@ -1749,137 +1847,135 @@ function hideLoadingIndicator(id) {
   if (loadingEl) loadingEl.remove();
 }
 
-// 随机状态计算函数（可复用）
+// 随机状态计算函数
 function getRandomStatChange(actionType) {
-  // 基础行为配置（原有逻辑）
+  // 基础行为配置（喂食/玩耍/休息）
   const BASE_BEHAVIORS = {
     feed: { 
-      //hunger: [15, 35],  // 喂食随机恢复15-35点
-      hunger: [70, 80],  // 喂食随机恢复15-35点
-      gold: [-2, -2],  // 扣除金币
-      //mood: [5, 15]       // 心情提升5-15点
-
+      hunger: [70, 80],   // 喂食恢复70-80点饥饿度
+      gold: [-2, -2]      // 固定扣除2金币
     },
     play: { 
-      hunger: [-20, -5],  // 玩耍消耗5-20点
-      //mood: [10, 20]      // 心情提升10-20点
+      hunger: [-20, -5]   // 玩耍消耗5-20点饥饿度
     }, 
     rest: { 
-      health: [35, 80],   // 休息恢复35-80点
-      gold: [-20, -20],  // 扣除金币
-      //mood: [10, 20]      // 心情提升10-20点
+      health: [35, 80],   // 休息恢复35-80点生命值
+      gold: [-20, -20]    // 固定扣除20金币
     }
   };
 
-  // 冒险事件配置（新增逻辑）
+  // 冒险事件配置（所有冒险相关行为）
   const ADVENTURE_ACTIONS = {
     // 通用冒险消耗（所有冒险行为都会应用）
     _base: {
-      hunger: [-5, -1], 
+      hunger: [-5, -1]    // 基础饥饿消耗
     },
     
     // 战斗类-正面战斗
     battle_attack: {
-      hunger: [-5, -1],
-      health: [-10, -1],
-      gold: [1, 10],
-      bond: [1, 5]
+      health: [-10, -3],  // 可能受伤
+      gold: [1, 10],      // 获得1-10金币
+      bond: [1, 5]        // 增加1-5羁绊值
     },
 
     // 战斗类-偷袭
     battle_trick: {
-      hunger: [-10, -5], 
-      health: [-5, 0],
+      health: [-5, 0],    // 较少受伤
       gold: [1, 10],
       bond: [1, 5]
     },
 
-    // 战斗类-BOSS战
+    // BOSS战
     boss_fight: {
-      hunger: [-10, -5], 
-      health: [-20, -5],
-      gold: [10, 20],
-      bond: [10, 20]
+      health: [-15, -5],  // 较大伤害
+      gold: [10, 20],     // 更多奖励
+      bond: [10, 20]      // 更多羁绊
     },
 
-    // 购买商品
+    // 神秘商人
     merchant_buy: {
-      gold: [-12, -5],
-      health: [20, 50],   // 购买治疗物品
+      gold: [-12, -5],    // 花费金币
+      health: [20, 50]    // 恢复生命
     },
 
-    // 宝箱类-直接打开
+    // 宝箱类（合并两种操作）
     treasure_open: {
-      gold: [5, 15],
-      health: [-10, 10],   
-      hunger: [-10, 20],   
-    },
-    // 宝箱类-小心检查
-    treasure_open: {
-      gold: [10, 20],  
-      hunger: [-15, 15],   
+      gold: [5, 20],      // 获得5-20金币
+      health: [-10, 10],  // 可能受伤或恢复
+      hunger: [-15, 20]   // 消耗或恢复体力
     },
 
-    // 向左
-    crossroad_left: {
-      health: [-10, 10],  // 可能受伤或发现恢复点
-    },
+    // 分岔路口
+    crossroad_left: { health: [-10, 10] },
+    crossroad_middle: { health: [-10, 10] },
+    crossroad_right: { health: [-10, 10] },
 
-    // 向中间
-    crossroad_middle: {
-      health: [-10, 10],  // 可能受伤或发现恢复点
-    },
+    // 特殊事件
+    keep_memories: { bond: [20, 50] },  // 拍照留念
+    share: { gold: [100, 200] },        // 分享奖励
+    enter: { gold: [100, 200] },        // 进入遗迹
 
-    // 向右
-    crossroad_right: {
-      health: [-10, 10],  // 可能受伤或发现恢复点
-    },
-
-    // 拍照留念
-    keep_memories: {
-      bond: [20, 50]
-    },
-
-    // 积极分享
-    share: {
-      gold: [100, 200],  
+    go_rest: {
+      health: [50, 80],  // 可能受伤或恢复
+      hunger: [30, 60]   // 消耗或恢复体力
     },
 
     // 默认冒险行为
     default: {
-      bond: [1, 5]       // 基础羁绊增长
+      bond: [1, 5]  // 基础羁绊增长
     }
   };
 
-  // 判断行为类型
+  // 处理基础行为（喂食/玩耍/休息）
   if (BASE_BEHAVIORS[actionType]) {
-    // 处理基础行为（喂食/玩耍/休息）
     const ranges = BASE_BEHAVIORS[actionType];
     return {
-      hunger: getRandomInRange(...(ranges.hunger || [0, 0])),
-      health: getRandomInRange(...(ranges.health || [0, 0])),
-      gold: getRandomInRange(...(ranges.gold || [0, 0])),
-      //mood: getRandomInRange(...(ranges.mood || [0, 0])),
-      bond: 0 // 基础行为不加羁绊值
+      hunger: ranges.hunger ? getRandomInRange(...ranges.hunger) : 0,
+      health: ranges.health ? getRandomInRange(...ranges.health) : 0,
+      gold: ranges.gold ? getRandomInRange(...ranges.gold) : 0,
+      bond: 0,  // 基础行为不加羁绊值
+      mood: 0
     };
   } 
+  
+  // 处理冒险行为
   else {
-    // 处理冒险行为
     const actionConfig = ADVENTURE_ACTIONS[actionType] || ADVENTURE_ACTIONS.default;
     
     // 合并基础消耗和特定行为效果
-    return {
-      hunger: getRandomInRange(...ADVENTURE_ACTIONS._base.hunger) + 
-            getRandomInRange(...(actionConfig.hunger || [0, 0])),
-      health: getRandomInRange(...(actionConfig.health || [0, 0])),
-      gold: getRandomInRange(...(actionConfig.gold || [0, 0])),
-      bond: getRandomInRange(...(actionConfig.bond || [0, 0])),
-      mood: 0 // 冒险行为不直接影响心情
+    const changes = {
+      hunger: getRandomInRange(...ADVENTURE_ACTIONS._base.hunger),
+      health: 0,
+      gold: 0,
+      bond: 0,
+      mood: 0
     };
+
+    // 应用特定行为的效果
+    if (actionConfig.health) changes.health += getRandomInRange(...actionConfig.health);
+    if (actionConfig.gold) changes.gold += getRandomInRange(...actionConfig.gold);
+    if (actionConfig.bond) changes.bond += getRandomInRange(...actionConfig.bond);
+    if (actionConfig.hunger) changes.hunger += getRandomInRange(...actionConfig.hunger);
+
+    console.log(`生成的${actionType}状态变化:`, changes);
+    return changes;
   }
 }
 
 // 辅助函数：生成区间随机数
 function getRandomInRange(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+// 权重随机函数
+function weightedRandom(items) {
+  const totalWeight = items.reduce((sum, item) => sum + item.weight, 0);
+  let rand = Math.random() * totalWeight;
+
+  for (const item of items) {
+    rand -= item.weight;
+    if (rand <= 0) return item.name;
+  }
+
+  // fallback，理论不会走到这
+  return items[items.length - 1].name;
 }
