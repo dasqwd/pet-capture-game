@@ -688,11 +688,10 @@ footer {
 
 @media screen and (max-width: 768px) {
   html, body {
+    overflow-x: hidden;
+    overflow-y: auto;
     margin: 0;
     padding: 0;
-    overflow-x: hidden;
-    width: 100vw;
-    height: 100vh;
   }
 
   .container {
@@ -899,16 +898,13 @@ footer {
   }
 
   #chat-interface.step-container {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: calc(var(--vh, 1vh) * 100 - 50px);  /* ✅ 留出页脚高度 */
-    width: 100vw;
-    padding: 0 !important;
     margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 100% !important;
+    height: calc(var(--vh, 1vh) * 100 - 50px) !important;
     border-radius: 0 !important;
-    z-index: 1;
   }
 
   .chat-input-area {
