@@ -74,7 +74,7 @@ body {
 /* 新增包裹层控制左侧间距 */
 .status-wrapper {
     position: absolute;   /* ✅ 从布局流中浮出，不受 flex-column 影响 */
-    top: 10px;             /* 靠近顶部 */
+    top: 0px;             /* 靠近顶部 */
     right: 20px;           /* 靠右边留点边距 */
     z-index: 2;            /* 保证在上层 */
 }
@@ -787,6 +787,7 @@ footer {
         padding: 10px;
     }
 }
+
 @media screen and (max-width: 768px) {
     /* 限制整体页面高度，避免滚动 */
     html, body {
@@ -795,12 +796,11 @@ footer {
 
     .step-container#region-selection {
         padding: 10px;
-        height: 100vh;        /* 强制占满整个视口高度 */
         box-sizing: border-box;
         overflow: hidden;
         display: flex;
         flex-direction: column;
-        justify-content: space-between;
+        gap: 10px;
     }
 
     .step-title {
@@ -844,5 +844,63 @@ footer {
         font-size: 1rem;
         margin-top: 0;
         align-self: center;
+    }
+
+    #chat-interface.step-container {
+      min-width: 100%;        /* ✅ 填满手机宽度 */
+      max-width: 100%;
+      border-radius: 0;       /* ✅ 可选：去掉圆角，贴合手机边缘 */
+      padding: 10px;          /* ✅ 缩小内边距 */
+    }
+
+    .chat-content-wrapper {
+      width: 100%;
+      padding: 5px;
+    }
+
+    .chat-messages {
+      margin-top: 100px;      /* ✅ 减小上边距，给状态栏留点空间 */
+    }
+    
+    .action-buttons-container {
+      flex-wrap: wrap;            /* ✅ 允许按钮换行 */
+      justify-content: center;
+      gap: 10px;
+      padding: 5px 10px;
+      position: relative;
+      bottom: 0;
+    }
+
+    .action-button {
+      min-width: 90px;            /* ✅ 设置更适合手机的按钮宽度 */
+      max-width: 120px;
+      flex: none;
+      font-size: 12px;            /* ✅ 缩小文字 */
+      padding: 6px 10px;
+    }
+
+    .chat-bottom-fixed {
+      height: auto;               /* ✅ 高度自适应内容 */
+      padding: 8px;
+    }
+
+    .chat-input-area {
+      top: 0;
+      padding: 8px;
+    }
+
+    .chat-input {
+      flex-direction: column;     /* ✅ 输入框和按钮改为上下结构 */
+      gap: 8px;
+    }
+
+    .chat-input input {
+      font-size: 1rem;
+      padding: 10px;
+    }
+
+    .chat-input button {
+      font-size: 1rem;
+      padding: 10px;
     }
 }
