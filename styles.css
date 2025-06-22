@@ -787,3 +787,62 @@ footer {
         padding: 10px;
     }
 }
+@media screen and (max-width: 768px) {
+    /* 限制整体页面高度，避免滚动 */
+    html, body {
+        overflow: hidden;
+    }
+
+    .step-container#region-selection {
+        padding: 10px;
+        height: 100vh;        /* 强制占满整个视口高度 */
+        box-sizing: border-box;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .step-title {
+        font-size: 1.5rem;
+        margin-bottom: 10px;
+    }
+
+    .step-description {
+        font-size: 1rem;
+        margin-bottom: 10px;
+    }
+
+    .region-selector {
+        grid-template-columns: repeat(3, 1fr); /* 每行三列 */
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    .region-card {
+        padding: 10px 5px;
+        border-radius: 10px;
+    }
+
+    .region-icon {
+        font-size: 2rem;
+        margin-bottom: 5px;
+    }
+
+    .region-name {
+        font-size: 1rem;
+        margin-bottom: 5px;
+    }
+
+    .region-desc {
+        font-size: 0.8rem;
+        line-height: 1.2;
+    }
+
+    .btn {
+        padding: 10px 20px;
+        font-size: 1rem;
+        margin-top: 0;
+        align-self: center;
+    }
+}
