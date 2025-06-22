@@ -688,10 +688,11 @@ footer {
 
 @media screen and (max-width: 768px) {
   html, body {
-    overflow-x: hidden;
-    overflow-y: auto;
     margin: 0;
     padding: 0;
+    overflow-x: hidden;
+    width: 100vw;
+    height: 100vh;
   }
 
   .container {
@@ -720,13 +721,15 @@ footer {
   .status-container {
     min-width: 240px !important;
     padding: 10px 15px;
-    background: rgba(0, 0, 0, 0.35);
     border-radius: 12px;
   }
 
   .status-row {
-    flex-direction: column;
-    gap: 20px !important;
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row !important;
+    gap: 8px !important;
+    justify-content: space-between;
   }
 
   .status-label {
@@ -736,16 +739,16 @@ footer {
   }
 
   .status-bar {
-    width: 140px !important;
-    height: 18px !important;
-    border-radius: 8px !important;
+    width: 100px !important;  /* ✅ 原来是140，调小以便排下 */
+    height: 14px !important;
   }
 
   .status-item {
+    width: 48%;
+    min-width: unset;
     flex-direction: row;
+    align-items: center;
     justify-content: space-between;
-    min-width: 140px !important;
-    width: 100%;
   }
 
   .plain-value {
@@ -778,10 +781,11 @@ footer {
   }
 
   .chat-header {
-    height: auto;
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 10px;
+    position: relative;
+    padding: 20px 10px;
+    width: 100%;
+    box-sizing: border-box;
+    z-index: 2;
   }
 
   .chat-content-wrapper {
@@ -895,13 +899,16 @@ footer {
   }
 
   #chat-interface.step-container {
-    margin: 0 !important;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: calc(var(--vh, 1vh) * 100 - 50px);  /* ✅ 留出页脚高度 */
+    width: 100vw;
     padding: 0 !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    min-width: 100% !important;
-    height: calc(var(--vh, 1vh) * 100 - 50px) !important;
+    margin: 0 !important;
     border-radius: 0 !important;
+    z-index: 1;
   }
 
   .chat-input-area {
