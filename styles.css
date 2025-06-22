@@ -789,7 +789,7 @@ footer {
 }
 
 @media screen and (max-width: 768px) {
-    /* 限制整体页面高度，避免滚动 */
+    /* 步骤一【地域选择】适配 */
     html, body {
         overflow: hidden;
     }
@@ -845,7 +845,39 @@ footer {
         margin-top: 0;
         align-self: center;
     }
+    /* 页脚适配 */
+    footer {
+      font-size: 0.75rem;    /* ✅ 缩小文字尺寸 */
+      padding: 10px 5px;     /* ✅ 缩小内边距 */
+      text-align: center;    /* ✅ 居中对齐 */
+      line-height: 1.4;      /* ✅ 增加可读性 */
+      white-space: normal;   /* ✅ 防止文字横向被拉长 */
+    }
 
+    /* 步骤二【宠物选择】适配 */
+    .pet-preview {
+      width: 180px;
+      height: 180px;
+      margin-bottom: 20px;
+    }
+
+    .pet-outline {
+      font-size: 3rem; /* 缩小占位图标字体 */
+      border-width: 3px; /* 减少边框厚度 */
+    }
+
+    .pet-description {
+      padding: 15px;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+
+    .pet-description h3 {
+      font-size: 1.2rem;
+      margin-bottom: 10px;
+    }
+    /* 步骤四【宠物聊天】适配 */
     #chat-interface.step-container {
       min-width: 100%;        /* ✅ 填满手机宽度 */
       max-width: 100%;
@@ -861,7 +893,7 @@ footer {
     .chat-messages {
       margin-top: 100px;      /* ✅ 减小上边距，给状态栏留点空间 */
     }
-    
+
     .action-buttons-container {
       flex-wrap: wrap;            /* ✅ 允许按钮换行 */
       justify-content: center;
@@ -902,5 +934,23 @@ footer {
     .chat-input button {
       font-size: 1rem;
       padding: 10px;
+    }
+    /* 聊天头像和聊天文字缩小 */
+    .avatar {
+      width: 40px;
+      height: 40px;
+      font-size: 18px;
+      margin: 0 10px;
+    }
+
+    .content {
+      padding: 10px 14px;
+      font-size: 0.95rem;
+      line-height: 1.4;
+      max-width: 85%;
+    }
+
+    .chat-title {
+      font-size: 1.5rem;
     }
 }
