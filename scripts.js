@@ -523,11 +523,11 @@ function buildCozePrompt(userContent, actionType) {
 ${userContent}
 
 [INSTRUCTIONS]
-1. 根据${actionType ? '动作类型' : '问题类型'}回应
-2. 必须包含1个肢体动作描述
-3. ${actionType ? '描述动作效果' : '添加相关反问'}
-4. 语气活泼带情感波动
-5. 禁止通用回复模板
+1. 请根据用户的问题进行主要答复
+2. 根据${actionType ? '动作类型' : '问题类型'}回应
+3. 必须包含1个肢体动作描述
+4. ${actionType ? '描述动作效果' : '添加相关反问'}
+5. 语气活泼带情感波动
 [/INSTRUCTIONS]`;
 }
 
@@ -835,7 +835,7 @@ function triggerRandomAdventureEvent() {
   // ========================
   if (typeof eventName === 'string' && eventName.includes("BOSS战")) {
     const rounds = getRandomInRange(2, 6);
-    console.log(`[triggerRandomAdventureEvent] 识别为 BOSS战，设置回合数: ${rounds}`);
+    console.log(`[triggerRandomAdventureEvent] 识别为BOSS战，设置战斗回合数为: ${rounds}`);
 
     gameState.bossBattle = {
       isFighting: true,
@@ -848,8 +848,10 @@ function triggerRandomAdventureEvent() {
     const prompt = `你们突然遭遇了一场可怕的战斗，对方是【${eventName}】！请你以宠物的语气表达出紧张或兴奋，并向主人确认是否准备迎战，不要暴露任何系统字段或后台设定。`;
 
     sendHiddenMessage('boss_fight_intro', prompt, (aiResponse) => {
-      applyStatusChanges({}, aiResponse);  // 可以根据AI情绪反馈调整状态
-      showBossBattleOptions(eventName);   // 展示攻击、防御等选项
+      applyStatusChanges({}, aiResponse);
+      
+      // ✅ 替代 showBossBattleOptions 函数，直接用已有逻辑
+      showAdventureOptionsByKeys(['boss_fight', 'run_away']);
     });
 
     return; // ✅ BOSS战已处理完毕，退出函数
@@ -1185,7 +1187,7 @@ const buttonConfig = {
           玩家选择了正面战斗，损失 ${-result.health} 点生命，消耗 ${-result.hunger} 点体力。
           请描述当前战斗场面，并说明 BOSS 是否显露出疲态。
 
-          如果还未打败 BOSS，请引导玩家继续战斗；如果是最后一回合，请描述 BOSS 被击败的场面。
+          如果还未打败 BOSS，请引导玩家继续战斗；如果是最后一回合，请描述 BOSS 被击败的场面。不要暴露任何系统字段或后台设定。
           `;
 
         sendMessage(userText, 'user');
@@ -1303,7 +1305,7 @@ function handleAdventureAction(actionType, userText) {
   console.log('📄[handleAdventureAction] 结果总结 summary:', summary);
 
   // ④ 构造 prompt 给 AI（系统口吻 + 简单总结）
-  const prompt = `他选择了 ${actionType}，结果是：${summary}。请用宠物语气描述他到底遭遇了什么事情，并以口语化风格对玩家展示出来。`;
+  const prompt = `他选择了 ${actionType}，结果是：${summary}。请用宠物语气描述他到底遭遇了什么事情，并以口语化风格对玩家展示出来。不要暴露任何系统字段或后台设定。`;
   console.log('🟣[handleAdventureAction] 构造 AI 提示 prompt:', prompt);
 
   // ⑤ 通过 sendHiddenMessage 发送 prompt，并在回调中更新状态
@@ -1349,70 +1351,41 @@ function handleMysteryTaskComplete() {
 
 // 更新操作按钮
 function updateActionButtons() {
-  const container = document.getElementById('action-buttons-container');
-  if (!container) {
-    console.warn('🟥[updateActionButtons] 找不到按钮容器');
-    return;
-  }
+    const container = document.getElementById('action-buttons-container');
+    if (!container) {
+        console.warn('🟥[updateActionButtons] 找不到按钮容器');
+        return;
+    }
 
-  container.innerHTML = '';
-  const buttonsToShow = [];
+    container.innerHTML = '';
+    const buttonsToShow = [];
 
-  console.log('🔵[updateActionButtons] 正在更新按钮...');
-  console.log('🔸当前状态: ', gameState.pet.stats);
+    // 1. 冒险状态下的按钮
+    if (gameState.pet.isAdventuring) {
+        buttonsToShow.push(buttonConfig.continue_adventure);
+        buttonsToShow.push(buttonConfig.rest);
+    } 
+    // 2. 非冒险状态下的按钮
+    else {
+        // 优先显示状态提醒按钮
+        if (gameState.pet.stats.health < STATUS_THRESHOLDS.health) {
+            buttonsToShow.push(buttonConfig.rest);
+        }
+        if (gameState.pet.stats.hunger < STATUS_THRESHOLDS.hunger) {
+            buttonsToShow.push(buttonConfig.feed);
+        }
 
-  // ✅ 特例1：冒险中，刚完成事件选项（没有事件在进行中）
-  if (gameState.pet.isAdventuring && gameState.currentEvent == null) {
-    console.log('🟣[updateActionButtons] 冒险阶段中 → 显示继续冒险 & 去休息');
-    buttonsToShow.push(buttonConfig.continue_adventure); // 继续冒险
-    buttonsToShow.push(buttonConfig.rest);     // 去休息
-    renderActionButtons(buttonsToShow);
-    return;
-  }
+        // 默认按钮（包括开始冒险）
+        Object.values(buttonConfig).forEach(btn => {
+            if (btn.condition && btn.condition() && !buttonsToShow.includes(btn)) {
+                buttonsToShow.push(btn);
+            }
+        });
+    }
 
-  // ✅ 特例2：状态过差时的必要按钮
-  if (gameState.pet.stats.health < STATUS_THRESHOLDS.health) {
-    console.log('🟡[updateActionButtons] 生命值偏低 → 添加休息按钮');
-    buttonsToShow.push(buttonConfig.rest);
-  }
-
-  if (gameState.pet.stats.hunger < STATUS_THRESHOLDS.hunger) {
-    console.log('🟡[updateActionButtons] 饥饿度偏低 → 添加喂食按钮');
-    buttonsToShow.push(buttonConfig.feed);
-  }
-
-  // ✅ 如果以上都不满足，只显示可用按钮中带条件的非隐藏按钮（手动控制按钮组）
-  if (buttonsToShow.length === 0) {
-    const contextButtons = Object.values(buttonConfig).filter(btn => btn.condition?.());
-    console.log('🔸使用自定义上下文按钮:', contextButtons.map(b => b.id));
-    buttonsToShow.push(...contextButtons);
-  }
-
-  console.log('✅[updateActionButtons] 最终渲染按钮:', buttonsToShow.map(b => b.id));
-  renderActionButtons(buttonsToShow.slice(0, 4));
+    console.log('✅[updateActionButtons] 最终渲染按钮:', buttonsToShow.map(b => b.id));
+    renderActionButtons(buttonsToShow.slice(0, 4));
 }
-
-
-// 进入神秘遗迹探索状态
-function enterMysteryRuinsExploration() {
-  // ✅ 玩家说话（只显示，不发送给 AI）
-  addMessageToChat('user', '（眼神兴奋地说）走，咱们去探探！');
-
-  // ✅ 随机生成探索长度
-  const rounds = getRandomInRange(8, 16);
-  gameState.ruinsExploration = {
-    isExploring: true,
-    currentRound: 0,
-    totalRounds: rounds,
-    rewardMultiplier: 1 + rounds * 0.3,
-    hasTriggeredFinalTreasure: false
-  };
-
-  console.log(`[神秘遗迹] 开始探索，总回合数：${rounds}`);
-  //✅ 随机事件
-  triggerRuinsEvent();
-}
-
 
 // 触发神秘遗迹中的冒险事件
 function triggerRuinsEvent() {
@@ -1455,7 +1428,7 @@ function triggerFixedEvent(eventName) {
   if (!event) return console.warn(`[神秘遗迹] 未找到事件：${eventName}`);
 
   const trigger = event.triggers[Math.floor(Math.random() * event.triggers.length)];
-  const prompt = `神秘遗迹探索中，你们遭遇了事件：${event.name}，背景是：${trigger}，请用宠物语气进行自然描述，并引导玩家选择。`;
+  const prompt = `神秘遗迹探索中，你们遭遇了事件：${event.name}，背景是：${trigger}，请用宠物语气进行自然描述，并询问主人该怎么办。不要暴露任何系统字段或后台设定。`;
 
   sendHiddenMessage('adventure_event', prompt, (aiResponse) => {
     applyStatusChanges({}, aiResponse);
@@ -1565,9 +1538,9 @@ function checkCriticalStatus() {
         gameState.alertCooldown.health = false;
         console.log("✅ 生命值提醒冷却结束");
       }, 5 * 60 * 1000);
+      
+      triggered = true;
     }
-
-    triggered = true;
   }
 
   // 饥饿度检测（带冷却控制）
@@ -1582,13 +1555,15 @@ function checkCriticalStatus() {
         gameState.alertCooldown.hunger = false;
         console.log("✅ 饥饿提醒冷却结束");
       }, 5 * 60 * 1000);
+      
+      triggered = true;
     }
-
-    triggered = true;
   }
 
-  // 强制更新按钮状态
-  updateActionButtons();
+  // 只有在触发了提醒时才更新按钮
+  if (triggered) {
+    updateActionButtons();
+  }
   
   return triggered;
 }
@@ -1676,12 +1651,16 @@ function processAIResponse(response, actionType = null) {
         console.log('🔸[processAIResponse] 计算出的状态变化:', changes);
 
         applyStatusChanges(changes, cleanResponse);  // ✅ 已自动触发后续检查
-        return;
+    } else {
+        // 3. 普通消息显示
+        console.log('🟣[processAIResponse] 无状态变更，仅显示普通回复');
+        displayPetResponse(cleanResponse);
     }
 
-    // 3. 普通消息显示
-    console.log('🟣[processAIResponse] 无状态变更，仅显示普通回复');
-    displayPetResponse(cleanResponse);
+    // 4. 在AI回复后统一刷新按钮（新增）
+    setTimeout(() => {
+        updateActionButtons();
+    }, 100); // 小延迟确保UI更新完成
 }
 
 // 修改宠物状态值（如生命值、饥饿度、金币、历练值）
@@ -1751,7 +1730,7 @@ function applyStatusChanges(changes, response, suppressCheck = false) {
     });
     
     // 2. 应用状态变化
-    updatePetStats(changes); // 仍然应用原始changes确保数据正确
+    updatePetStats(changes);
     
     // 3. 处理响应消息
     const cleanResponse = response.replace(/\(状态变化[^)]*\)/g, '').trim();
@@ -1765,13 +1744,12 @@ function applyStatusChanges(changes, response, suppressCheck = false) {
     // 6. 显示消息
     addMessageToChat('system', displayText || "（轻轻蹭了蹭你）");
     
-    // 7. 👇 根据 suppressCheck 参数决定是否再次检查关键状态
+    // 7. 根据 suppressCheck 参数决定是否检查关键状态
     if (!suppressCheck) {
-      checkCriticalStatus();
+        checkCriticalStatus();
     }
 
-    // 8. 更新按钮
-    updateActionButtons();
+    // 8. 移除这里的按钮更新，统一在 processAIResponse 中处理
 }
 
 //给 AI 的提示用。简洁摘要（用于生成 prompt）
