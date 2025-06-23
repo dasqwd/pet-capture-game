@@ -88,6 +88,11 @@ body {
     min-width: 300px;      /* ✅ 防止压缩 */
 }
 
+/* 或者单独为第一行添加底部间距 */
+.status-row:first-child {
+  margin-bottom: 10px;
+}
+
 /* 状态行 */
 .status-row {
     display: flex;
@@ -702,6 +707,80 @@ footer {
     align-items: center;    /* 垂直居中 */
     width: 100%;
     padding: 15px 0;
+}
+
+/* 飘升数字动画 */
+@keyframes floatUpFadeOut {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-40px);
+  }
+}
+
+.floating-increase {
+  position: absolute;
+  color: #4caf50; /* 绿色 */
+  font-weight: 700;
+  font-size: 1.2rem;
+  pointer-events: none;
+  user-select: none;
+  animation: floatUpFadeOut 1s ease forwards;
+  z-index: 10;
+}
+
+/* 粒子样式 */
+.particle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: #ff9800; /* 橙色 */
+  border-radius: 50%;
+  opacity: 1;
+  animation: particleFloat 1s ease forwards;
+  pointer-events: none;
+  user-select: none;
+  z-index: 9;
+}
+
+/* 粒子飘浮和缩小 */
+@keyframes particleFloat {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--x, 0px), -40px) scale(0.3);
+  }
+}
+
+@keyframes floatUp {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-50px);
+    opacity: 0;
+  }
+}
+
+@keyframes particleMove {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(var(--end-x), var(--end-y));
+    opacity: 0;
+  }
 }
 
 @media screen and (max-width: 768px) {
