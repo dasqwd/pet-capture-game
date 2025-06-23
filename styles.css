@@ -701,7 +701,7 @@ footer {
 
   .pet-name {
     font-size: 1.2rem!important;
-    top: 10px!important;
+    top: 7px!important;
     left: 10px!important;
   }
 
@@ -800,7 +800,7 @@ footer {
   }
 
   .chat-messages {
-    margin-top: 100px;
+    margin-top: 5px;
   }
 
   .chat-bottom-fixed {
