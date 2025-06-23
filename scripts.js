@@ -341,37 +341,78 @@ function showStep(stepId) {
 // 配套的updateChatBackground函数（增强版）
 function updateChatBackground() {
   try {
-    // 1. 获取两个关键元素
     const chatInterface = document.getElementById('chat-interface');
     const chatMessages = document.querySelector('.chat-messages');
-    // 2. 元素存在性检查
     if (!chatInterface || !chatMessages) {
-      console.warn('找不到聊天界面元素');
+      console.warn('❌ 找不到聊天界面元素');
       return;
     }
 
-    // 3. 获取宠物类型
     const petType = gameState.pet?.type || gameState.petType;
+    console.log('[背景更新] 当前宠物类型:', petType);
+
     if (!petType) {
-      console.warn('宠物类型未设置，使用默认背景');
+      console.warn('❌ 宠物类型未设置，使用默认背景');
       setBackground(chatInterface, './default-bg.jpg');
       hideMessagesBackground(chatMessages);
       return;
     }
 
-    // 4. 获取对应背景图路径
     const bgPath = petBackgrounds[petType];
     if (!bgPath) {
-      console.warn(`找不到${petType}对应的背景图`);
+      console.warn(`❌ 未找到 ${petType} 对应的背景图`);
       return;
     }
 
-    // 5. 设置新背景
-    setBackground(chatInterface, `./pets/${bgPath}`);
-    hideMessagesBackground(chatMessages);
+    const imagePath = `./pets/${bgPath}`;
+    console.log('[背景更新] 图片路径:', imagePath);
 
-  } catch (error) {
-    console.error('更新背景出错:', error);
+    const videoPath = imagePath.replace('.png', '-mv.mp4');
+    console.log('[背景更新] 视频路径:', videoPath);
+
+    // 设置背景图片作为初始显示
+    chatInterface.style.backgroundImage = `url("${imagePath}")`;
+
+    // 创建视频元素
+    const video = document.createElement('video');
+    video.src = videoPath;
+    video.loop = true;
+    video.muted = true;
+    video.autoplay = true;
+    video.playsInline = true; // 防止移动端全屏
+    video.style.position = 'absolute';
+    video.style.top = '0';
+    video.style.left = '0';
+    video.style.width = '100%';
+    video.style.height = '100%';
+    video.style.objectFit = 'cover';
+    video.style.zIndex = '-1';
+    video.style.pointerEvents = 'none';
+    video.style.opacity = '0';
+    video.id = 'bg-video';
+
+    console.log('[背景更新] 开始加载视频...');
+
+    video.onloadeddata = () => {
+      console.log('✅ 视频加载完成，插入 DOM');
+      // 删除旧视频（如果存在）
+      const oldVideo = document.getElementById('bg-video');
+      if (oldVideo) oldVideo.remove();
+
+      // 插入新视频
+      chatInterface.appendChild(video);
+      // 渐现
+      setTimeout(() => {
+        video.style.opacity = '1';
+      }, 100);
+    };
+
+    video.onerror = (e) => {
+      console.warn('⚠️ 视频加载失败:', videoPath);
+    };
+
+  } catch (err) {
+    console.error('❌ 更新背景出错:', err);
   }
 }
 
