@@ -87,7 +87,7 @@ const STATUS_THRESHOLDS = {
   health: 20,  // 生命值≤20%时触发休息提醒
   hunger: 30,    // 饥饿度≤30%时触发喂食提醒
   // 新增冒险相关阈值
-  minAdventureHealth: 60,  // 开始冒险最小生命值
+  minAdventureHealth: 30,  // 开始冒险最小生命值
   minAdventureHunger: 60,  // 开始冒险最小饥饿度
   continueAdventureHealth: 10, // 继续冒险最小生命值
   continueAdventureHunger: 0  // 继续冒险最小饥饿度
@@ -123,6 +123,13 @@ function loadGameState() {
       const parsed = JSON.parse(saved);
       Object.assign(gameState.pet, parsed.pet);
       gameState.conversationId = parsed.conversationId || generateConversationId();
+      
+      // 强制重置冒险状态
+      if (parsed.pet) {
+        gameState.pet = parsed.pet;
+        gameState.pet.isAdventuring = false;
+        gameState.pet.lastFedTime = null; // 可选：同时重置其他计时器
+      }
     }
   } catch (e) {
     console.error("加载状态失败:", e);
@@ -651,8 +658,7 @@ function initGame() {
         updateUI();
         updateChatBackground();
         showStep('chat-interface');
-        // 新增：进入聊天界面后立即冒险检测状态
-        startAdventure()
+        updateActionButtons(); // ✅ 让按钮显示而不是立即冒险
       }, 500);
     });
   }
@@ -673,6 +679,7 @@ function initGame() {
     gameState.currentStep = 'main-game';
     updateUI();
     showStep('chat-interface');
+    updateActionButtons();  // ✅ 补充，确保按钮显示
   } else {
     console.log("新玩家，显示地域选择");
     showStep('region-selection');
@@ -771,17 +778,25 @@ window.addEventListener('DOMContentLoaded', initGame);
 
 // 开始冒险检测
 function startAdventure() {
-  const status = checkAdventureStatus();
-
-  if (!status.canStart) {
-    if (status.critical.lowHunger) triggerPetAlert('hunger', gameState.pet.stats.hunger);
-    if (status.critical.lowHealth) triggerPetAlert('health', gameState.pet.stats.health);
+  const { health, hunger } = gameState.pet.stats;
+  
+  // 生命值不足
+  if (health <= STATUS_THRESHOLDS.minAdventureHealth) {
+    triggerPetAlert('health', health); // 使用原有的提醒系统
+    return;
+  }
+  
+  // 饥饿度不足
+  if (hunger <= STATUS_THRESHOLDS.minAdventureHunger) {
+    triggerPetAlert('hunger', hunger);
     return;
   }
 
+  // 状态正常时开始冒险
   gameState.pet.isAdventuring = true;
-
   triggerRandomAdventureEvent();
+  
+  sendMessage("（兴奋地跳起来）我们出发去冒险吧！", 'system');
 }
 
 // 结束冒险检测
@@ -793,46 +808,34 @@ function endAdventure() {
 
 // 触发随机事件
 function triggerRandomAdventureEvent() {
-  console.log('[triggerRandomAdventureEvent] 开始触发随机冒险事件');
-
   const eventTypes = Object.keys(adventureEvents);
-  console.log('[triggerRandomAdventureEvent] 所有事件类型:', eventTypes);
 
-  // 根据是否接受神秘任务，过滤事件
-  const filteredEventTypes = gameState.mysteryTask.isAccepted
-    ? eventTypes.filter(type => {
-        const name = adventureEvents[type]?.name || '';
-        return name !== "神秘任务";
-      })
-    : eventTypes;
-  console.log('[triggerRandomAdventureEvent] 过滤后的事件类型:', filteredEventTypes);
-
-  if (filteredEventTypes.length === 0) {
-    console.warn('[triggerRandomAdventureEvent] 没有可用事件，退出');
-    return;
-  }
-
-  // 重新随机选择事件key
+  // 排除神秘任务专属事件（如果有特定规则）
+  const filteredEventTypes = eventTypes.filter(key => !key.includes('神秘任务'));
+  
+  // 随机选择事件
   const randomKey = filteredEventTypes[Math.floor(Math.random() * filteredEventTypes.length)];
   const event = adventureEvents[randomKey];
   console.log(`[triggerRandomAdventureEvent] 选中事件key: ${randomKey}`, event);
 
-  // 安全判断 triggers 是否存在且为数组
+  // 获取触发文本
   let trigger = '';
   if (Array.isArray(event?.triggers) && event.triggers.length > 0) {
     trigger = event.triggers[Math.floor(Math.random() * event.triggers.length)];
     console.log(`[triggerRandomAdventureEvent] 选中触发文本: ${trigger}`);
   } else {
-    console.warn(`[triggerRandomAdventureEvent] 事件 ${randomKey} 缺少触发文本 triggers，使用默认空字符串`);
+    console.warn(`[triggerRandomAdventureEvent] 事件 ${randomKey} 缺少 triggers，将使用空字符串`);
   }
 
   const eventName = event?.name || randomKey;
   console.log(`[triggerRandomAdventureEvent] 事件名称: ${eventName}`);
 
-  // 判断是否为 BOSS 战
+  // ========================
+  // 🎯 是否为 BOSS 战处理
+  // ========================
   if (typeof eventName === 'string' && eventName.includes("BOSS战")) {
     const rounds = getRandomInRange(2, 6);
-    console.log(`[triggerRandomAdventureEvent] 识别为BOSS战，设置战斗回合数为: ${rounds}`);
+    console.log(`[triggerRandomAdventureEvent] 识别为 BOSS战，设置回合数: ${rounds}`);
 
     gameState.bossBattle = {
       isFighting: true,
@@ -841,53 +844,41 @@ function triggerRandomAdventureEvent() {
       rewardMultiplier: 1 + rounds * 0.2,
       bossName: eventName
     };
+
+    const prompt = `你们突然遭遇了一场可怕的战斗，对方是【${eventName}】！请你以宠物的语气表达出紧张或兴奋，并向主人确认是否准备迎战，不要暴露任何系统字段或后台设定。`;
+
+    sendHiddenMessage('boss_fight_intro', prompt, (aiResponse) => {
+      applyStatusChanges({}, aiResponse);  // 可以根据AI情绪反馈调整状态
+      showBossBattleOptions(eventName);   // 展示攻击、防御等选项
+    });
+
+    return; // ✅ BOSS战已处理完毕，退出函数
   }
 
-  // 任务回合数增加及完成检测
+  // ========================
+  // 🔁 神秘任务：回合计数与完成
+  // ========================
   if (gameState.mysteryTask?.isAccepted) {
     gameState.mysteryTask.currentRounds = (gameState.mysteryTask.currentRounds || 0) + 1;
-    console.log(`[triggerRandomAdventureEvent] 任务进行中，当前回合: ${gameState.mysteryTask.currentRounds}/${gameState.mysteryTask.requiredRounds}`);
+    console.log(`[triggerRandomAdventureEvent] 神秘任务进行中：第 ${gameState.mysteryTask.currentRounds}/${gameState.mysteryTask.requiredRounds} 回合`);
 
     if (gameState.mysteryTask.currentRounds >= gameState.mysteryTask.requiredRounds) {
-      console.log('[triggerRandomAdventureEvent] 任务完成，调用handleMysteryTaskComplete');
+      console.log('[triggerRandomAdventureEvent] 神秘任务达成，准备处理完成逻辑');
       handleMysteryTaskComplete();
     }
   }
 
-  // ⚠️ 如果是BOSS战，跳过通用提示逻辑，由 boss_fight 按钮负责后续处理
-  if (eventName.includes("BOSS战")) {
-    console.log('[triggerRandomAdventureEvent] BOSS战事件已触发，跳过通用提示处理');
-    return;
-  }
+  // ========================
+  // ✨ 正常事件处理流程
+  // ========================
+  const prompt = `你们当前正在进行一场异世界冒险，遭遇了：【${eventName}】。背景描述：${trigger}。请你以宠物的语气自然地讲述这个情况，并询问主人该怎么办。不要暴露任何系统字段或后台设定。`;
 
-  // 构建系统提示
-  const prompt = `你们当前处于异世界冒险中，触发了一个事件：${eventName}，背景是：${trigger}，请你以宠物的口吻自然描述你们遇到了什么情况，然后问主人接下来该怎么办，但不要暴露系统字段或提示格式。`;
-  console.log('[triggerRandomAdventureEvent] 构建提示:', prompt);
+  console.log('[triggerRandomAdventureEvent] 构建系统提示：', prompt);
 
-  // 发送隐性消息，回调展示选项
   sendHiddenMessage('adventure_event', prompt, (aiResponse) => {
-    applyStatusChanges({}, aiResponse);
-    showAdventureOptions(eventName);
+    applyStatusChanges({}, aiResponse); // 如需情绪影响状态
+    showAdventureOptions(eventName);    // 展示例如“调查、躲避、使用技能”等选项
   });
-}
-
-// 冒险状态检查（使用统一阈值）
-function checkAdventureStatus() {
-  const { health, hunger } = gameState.pet.stats;
-
-  const result = {
-    canStart: !gameState.pet.isAdventuring &&
-              health > STATUS_THRESHOLDS.minAdventureHealth &&
-              hunger > STATUS_THRESHOLDS.minAdventureHunger,
-    canContinue: health > STATUS_THRESHOLDS.continueAdventureHealth &&
-                 hunger > STATUS_THRESHOLDS.continueAdventureHunger,
-    critical: {
-      lowHealth: health <= STATUS_THRESHOLDS.health,
-      lowHunger: hunger <= STATUS_THRESHOLDS.hunger
-    }
-  };
-
-  return result;
 }
 
 // 显示冒险选项
@@ -981,16 +972,27 @@ const buttonConfig = {
     id: 'adventure-btn',
     text: '<i class="fas fa-hat-wizard"></i> 开始冒险',
     className: 'action-button adventure-btn',
-    condition: () => !gameState.pet.isAdventuring && 
-                    gameState.pet.stats.health > 60 && 
-                    gameState.pet.stats.hunger > 60,
+    condition: () => !gameState.pet.isAdventuring, // 只要不在冒险中就显示
     action: () => {
+      // 检查状态
+      const { health, hunger } = gameState.pet.stats;
+      
+      // 生命值不足
+      if (health <= STATUS_THRESHOLDS.minAdventureHealth) {
+        addMessageToChat('system' , `（虚弱地趴着）生命值只剩${health}%了，让我休息一下再来冒险吧~`);
+        return;
+      }
+      
+      // 饥饿度不足
+      if (hunger <= STATUS_THRESHOLDS.minAdventureHunger) {
+        addMessageToChat('system', `（肚子咕咕叫）饥饿度只剩${hunger}%了，先喂喂我吧...`);
+        return;
+      }
+      
+      // 状态正常，开始冒险
       gameState.pet.isAdventuring = true;
-      // ✅ 仅在界面展示，不发送给 AI
       addMessageToChat('user', '我们出发去冒险吧！');
-      // ✅ 隐性发送事件给 AI，让 AI 产生描述
       triggerRandomAdventureEvent();
-      // ✅ 防止重复点击
       hideAllButtons();
     }
   },
@@ -1000,9 +1002,9 @@ const buttonConfig = {
     id: 'feed-btn',
     text: '<i class="fas fa-utensils"></i> 喂食',
     className: 'action-button feed-btn',
-    condition: () => gameState.pet.stats.hunger < STATUS_THRESHOLDS.hunger,
+    condition: () => gameState.pet.stats.hunger < STATUS_THRESHOLDS.hunger, 
     action: () => {
-      sendMessage("（在背包里掏出了食物）给你吃好吃的~", 'feed');
+      sendMessage("（掏出食物）给你吃好吃的~", 'feed');
       hideAllButtons();
     }
   },
@@ -1566,11 +1568,6 @@ function checkCriticalStatus() {
     }
 
     triggered = true;
-
-    if (gameState.pet.isAdventuring && health <= STATUS_THRESHOLDS.continueAdventureHealth) {
-      console.log("🛑 生命值严重过低，强制结束冒险");
-      endAdventure();
-    }
   }
 
   // 饥饿度检测（带冷却控制）
@@ -1588,16 +1585,13 @@ function checkCriticalStatus() {
     }
 
     triggered = true;
-
-    if (gameState.pet.isAdventuring && hunger <= STATUS_THRESHOLDS.continueAdventureHunger) {
-      console.log("🛑 饥饿度严重过低，强制结束冒险");
-      endAdventure();
-    }
   }
 
+  // 强制更新按钮状态
+  updateActionButtons();
+  
   return triggered;
 }
-
 
 // 触发宠物提醒
 function triggerPetAlert(type, currentValue) {
@@ -1973,9 +1967,9 @@ function weightedRandom(items) {
 
   for (const item of items) {
     rand -= item.weight;
-    if (rand <= 0) return item.name;
+    if (rand <= 0) return item.key; // ✅ 返回 key 而不是 item.name
   }
 
   // fallback，理论不会走到这
-  return items[items.length - 1].name;
+  return items[items.length - 1].key;
 }
