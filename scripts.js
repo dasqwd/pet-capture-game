@@ -88,7 +88,7 @@ const STATUS_THRESHOLDS = {
   hunger: 30,    // 饥饿度≤30%时触发喂食提醒
   // 新增冒险相关阈值
   minAdventureHealth: 30,  // 开始冒险最小生命值
-  minAdventureHunger: 60,  // 开始冒险最小饥饿度
+  minAdventureHunger: 20,  // 开始冒险最小饥饿度
   continueAdventureHealth: 10, // 继续冒险最小生命值
   continueAdventureHunger: 0  // 继续冒险最小饥饿度
 };
@@ -1656,18 +1656,115 @@ function updatePetStats(changes) {
   }
   console.log("接收到的变化:", changes);
   const stats = gameState.pet.stats;
-  
-  // 更新所有属性（带边界检查）
-    if (changes.hunger !== undefined) stats.hunger = Math.min(100, Math.max(0, stats.hunger + changes.hunger));
-    if (changes.health !== undefined) stats.health = Math.min(100, Math.max(0, stats.health + changes.health));
-    if (changes.gold !== undefined) stats.gold = Math.max(0, stats.gold + changes.gold);
-    if (changes.bond !== undefined) stats.bond = Math.max(0, stats.bond + changes.bond);
-  // 调试日志
+
+  // 检查所有变化，触发特效（只针对正值增加触发）
+  for (const [stat, value] of Object.entries(changes)) {
+    if (value !== undefined && value > 0) {
+      showStatIncrease(stat, value);
+    }
+    
+    // 更新状态值
+    if (stat === 'health' || stat === 'hunger') {
+      stats[stat] = Math.min(100, Math.max(0, stats[stat] + value));
+    } else {
+      stats[stat] = Math.max(0, stats[stat] + value);
+    }
+  }
+
   console.log("最终状态:", stats);
-  
+
   // 保存状态并更新UI
   saveGameState();
   updateStatsUI();
+}
+
+// 飘升数字特效（传入属性名和增加值）
+function showStatIncrease(statName, amount) {
+  // 根据属性名获取对应的状态项
+  const statLabels = {
+    health: '生命值',
+    hunger: '饥饿度',
+    gold: '金币',
+    bond: '历练值'
+  };
+  
+  const statusItems = document.querySelectorAll('.status-item');
+  let targetStatusItem = null;
+  
+  for (const item of statusItems) {
+    const label = item.querySelector('.status-label');
+    if (label && label.textContent.includes(statLabels[statName])) {
+      targetStatusItem = item;
+      break;
+    }
+  }
+
+  if (!targetStatusItem) return;
+
+  // 不同属性的颜色设置
+  const colors = {
+    health: '#FF5555',    // 生命值红色
+    hunger: '#FFAA00',    // 饥饿度橙色
+    gold: '#FFD700',      // 金币金色
+    bond: '#55AAFF'       // 历练值蓝色
+  };
+
+  // 创建飘升数字元素
+  const floatText = document.createElement('div');
+  floatText.className = 'floating-increase';
+  floatText.textContent = `+${amount}`;
+
+  // 设置样式
+  floatText.style.position = 'absolute';
+  floatText.style.left = '110px';
+  floatText.style.top = '0px';
+  floatText.style.color = colors[statName] || '#00AA00';
+  floatText.style.fontSize = '24px';
+  floatText.style.fontWeight = 'bold';
+  floatText.style.textShadow = '0 0 3px rgba(0,0,0,0.5)';
+  floatText.style.animation = 'floatUp 3s ease-out forwards';
+
+  // 确保父容器有相对定位
+  targetStatusItem.style.position = 'relative';
+  targetStatusItem.appendChild(floatText);
+
+  // 动画结束自动移除
+  floatText.addEventListener('animationend', () => {
+    floatText.remove();
+  });
+
+  // 触发粒子效果
+  showStatParticles(targetStatusItem, colors[statName] || '#00AA00', 8);
+}
+
+// 粒子动画函数
+function showStatParticles(parentEl, color, count = 8) {
+  for (let i = 0; i < count; i++) {
+    const particle = document.createElement('div');
+    particle.className = 'particle';
+    particle.style.position = 'absolute';
+    particle.style.width = '6px';
+    particle.style.height = '6px';
+    particle.style.backgroundColor = color;
+    particle.style.borderRadius = '50%';
+    particle.style.left = '110px';
+    particle.style.top = '10px';
+    particle.style.animation = `particleMove ${Math.random() * 0.5 + 0.5}s ease-out forwards`;
+    particle.style.opacity = '0.8';
+
+    // 随机动画参数
+    const angle = Math.random() * Math.PI * 2;
+    const distance = Math.random() * 30 + 20;
+    particle.style.setProperty('--end-x', `${Math.cos(angle) * distance}px`);
+    particle.style.setProperty('--end-y', `${Math.sin(angle) * distance}px`);
+
+    parentEl.appendChild(particle);
+
+    // 动画完成自动移除
+    particle.addEventListener('animationend', () => {
+      particle.remove();
+    });
+  }
 }
 
 // ========== 工具函数 ==========
