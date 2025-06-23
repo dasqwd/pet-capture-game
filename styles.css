@@ -747,15 +747,12 @@ footer {
   }
 
   .status-bar {
-    flex-grow: 1;
-    min-width: 0;
-    width: 100px !important;
-    height: 14px;
-    position: relative;
+    width: 100px !important;  /* ✅ 原来是140，调小以便排下 */
+    height: 14px !important;
   }
 
   .status-item {
-    width: 48%;
+    width: 50%;
     min-width: unset;
     flex-direction: row;
     align-items: center;
@@ -773,10 +770,7 @@ footer {
   }
 
   .status-text {
-    position: absolute;
-    right: 6px;
-    top: 0;
-    font-size: 0.7rem;
+    font-size: 0.75rem !important;
   }
 
   .status-fill {
