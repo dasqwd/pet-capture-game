@@ -720,8 +720,8 @@ footer {
   }
 
   .status-wrapper {
-    top: 10px;
-    right: 10px;
+    top: 5px;
+    right: 5px;
     transform: scale(0.85);
     transform-origin: top right;
   }
@@ -736,7 +736,7 @@ footer {
     display: flex;
     flex-wrap: wrap;
     flex-direction: row !important;
-    gap: 8px !important;
+    gap: 10px !important;
     justify-content: space-between;
   }
 
@@ -747,8 +747,11 @@ footer {
   }
 
   .status-bar {
-    width: 100px !important;  /* ✅ 原来是140，调小以便排下 */
-    height: 14px !important;
+    flex-grow: 1;
+    min-width: 0;
+    width: 100px !important;
+    height: 14px;
+    position: relative;
   }
 
   .status-item {
@@ -770,7 +773,10 @@ footer {
   }
 
   .status-text {
-    font-size: 0.75rem !important;
+    position: absolute;
+    right: 6px;
+    top: 0;
+    font-size: 0.7rem;
   }
 
   .status-fill {
