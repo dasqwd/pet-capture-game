@@ -23,6 +23,7 @@ body {
     animation: gradientBG 15s ease infinite;
     color: #fff;
     min-height: 100vh;
+    padding: 20px;
     overflow: hidden;
 }
 
@@ -35,12 +36,10 @@ body {
 .container {
     max-width: 1200px;
     margin: 0 auto;
+    padding: 20px;
     height: calc(100vh - 40px);
     display: flex;
     flex-direction: column;
-    position: relative; /* 保持相对定位 */
-    width: 100%;
-    padding: 20px;
 }
 
 /* 游戏头部区域 */
@@ -680,32 +679,24 @@ body {
 
 /* 页脚 */
 footer {
-    position: relative; /* 改为 relative */
     display: flex;
-    justify-content: center;
-    align-items: center;
+    justify-content: center; /* 水平居中 */
+    align-items: center;    /* 垂直居中 */
     width: 100%;
     padding: 15px 0;
-    height: 50px;
-    z-index: 5;
-    margin-top: auto; /* 确保 footer 始终在底部 */
 }
 
 @media screen and (max-width: 768px) {
   html, body {
+    overflow-x: hidden;
+    overflow-y: auto;
     margin: 0;
     padding: 0;
-    width: 100%;
-    height: 100%;
-    overflow-x: hidden;
   }
 
   .container {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    overflow-x: hidden;
     padding: 0px;
+    height: auto;
   }
 
   .pet-name {
@@ -720,8 +711,8 @@ footer {
   }
 
   .status-wrapper {
-    top: 5px;
-    right: 5px;
+    top: 10px;
+    right: 10px;
     transform: scale(0.85);
     transform-origin: top right;
   }
@@ -736,7 +727,7 @@ footer {
     display: flex;
     flex-wrap: wrap;
     flex-direction: row !important;
-    gap: 10px !important;
+    gap: 8px !important;
     justify-content: space-between;
   }
 
@@ -752,7 +743,7 @@ footer {
   }
 
   .status-item {
-    width: 50%;
+    width: 48%;
     min-width: unset;
     flex-direction: row;
     align-items: center;
@@ -907,18 +898,13 @@ footer {
   }
 
   #chat-interface.step-container {
-    position: fixed; /* 使用fixed而不是absolute */
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 50px; /* 为页脚留出空间 */
-    width: 100%;
-    padding: 0;
-    margin: 0;
-    border-radius: 0;
-    background-color: #000; /* 或你需要的背景色 */
-    z-index: 10;
-    overflow: auto; /* 允许内容滚动 */
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 100% !important;
+    height: calc(var(--vh, 1vh) * 100 - 50px) !important;
+    border-radius: 0 !important;
   }
 
   .chat-input-area {
