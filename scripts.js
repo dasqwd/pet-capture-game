@@ -130,6 +130,8 @@ function loadGameState() {
         gameState.pet.isAdventuring = false;
         gameState.pet.lastFedTime = null; // 可选：同时重置其他计时器
       }
+      // ✅ 加载完毕后立即刷新背景
+      updateChatBackground();
     }
   } catch (e) {
     console.error("加载状态失败:", e);
