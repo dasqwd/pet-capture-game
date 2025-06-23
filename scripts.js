@@ -875,7 +875,7 @@ function triggerRandomAdventureEvent() {
   const trigger = event.triggers[Math.floor(Math.random() * event.triggers.length)];
   const eventName = event.name;
 
-  const prompt = `冒险中遇到了【${eventName}】：${trigger}。请用宠物语气描述并询问该怎么办。`;
+  const prompt = `冒险中遇到了【${eventName}】：${trigger}。请用宠物语气描述并询问该怎么办。不要出现事件描述的字样，也不要暴露任何系统字段或后台设定。`;
   
   sendHiddenMessage('adventure_event', prompt, (aiResponse) => {
     applyStatusChanges({}, aiResponse);
@@ -1166,41 +1166,40 @@ const buttonConfig = {
     condition: () => gameState.pet.isAdventuring,
     action: () => {
       const userText = "（怒吼一声）冲上去正面战斗！";
-      addMessageToChat('user', userText); // 直接添加用户消息，不触发AI响应
+      addMessageToChat('user', userText);
 
-      // 计算本次战斗结果
-      const round = gameState.bossBattle.currentRound;
-      const total = gameState.bossBattle.totalRounds;
-      const result = {
+      // 使用 let 而不是 const，因为后面会修改
+      let result = {
         health: getRandomInRange(-20, -5),
         hunger: getRandomInRange(-5, 0),
         gold: 0,
         bond: 0
       };
 
-      // 构造战斗描述prompt
-      const prompt = `这是与 ${gameState.bossBattle.bossName} 的第 ${round} 回合战斗。
-      玩家选择了正面战斗，损失 ${-result.health} 点生命，消耗 ${-result.hunger} 点体力。
-      请用宠物语气描述当前战斗场面，并说明 BOSS 是否显露出疲态。最后询问主人该怎么办。不要暴露任何系统字段或后台设定。`;
+      // 使用 let 而不是 const
+      let prompt = `这是与 ${gameState.bossBattle.bossName} 的第 ${gameState.bossBattle.currentRound} 回合战斗。
+        玩家选择了正面战斗，损失 ${-result.health} 点生命，消耗 ${-result.hunger} 点体力。
+        请用宠物语气描述当前战斗场面，并说明 BOSS 是否显露出疲态。最后询问主人该怎么办。不要暴露任何系统字段或后台设定。`;
 
       // 如果是最后一回合，添加胜利奖励
-      if (round >= total) {
+      if (gameState.bossBattle.currentRound >= gameState.bossBattle.totalRounds) {
         const gold = Math.floor(getRandomInRange(20, 50) * gameState.bossBattle.rewardMultiplier);
         const bond = Math.floor(getRandomInRange(10, 20) * gameState.bossBattle.rewardMultiplier);
-        result.gold = gold;
-        result.bond = bond;
+        result = {  // 这里会修改 result 对象
+                ...result, // 保留原有属性
+                gold: gold,
+                bond: bond
+              };
 
-        // ✅ 使用模板字符串拼接
         prompt += `\n\n玩家成功击败了 ${gameState.bossBattle.bossName}！
-      奖励金币：${gold}，历练值：${bond}。
-      请用宠物语气描述胜利场景，并感谢玩家的英勇。`;
+          奖励金币：${gold}，历练值：${bond}。
+          请用宠物语气描述胜利场景，并感谢玩家的英勇。`;
       }
 
       sendHiddenMessage('boss_battle', prompt, (aiResponse) => {
-        // 一次性应用所有状态变化
         applyStatusChanges(result, aiResponse);
         
-        if (round >= total) {
+        if (gameState.bossBattle.currentRound >= gameState.bossBattle.totalRounds) {
           gameState.bossBattle.isFighting = false;
           showAdventureOptionsByKeys(['continue_adventure', 'rest']);
         } else {
@@ -1657,17 +1656,18 @@ function updatePetStats(changes) {
   console.log("接收到的变化:", changes);
   const stats = gameState.pet.stats;
 
-  // 检查所有变化，触发特效（只针对正值增加触发）
+  // 检查所有变化，触发特效
   for (const [stat, value] of Object.entries(changes)) {
-    if (value !== undefined && value > 0) {
-      showStatIncrease(stat, value);
-    }
-    
-    // 更新状态值
-    if (stat === 'health' || stat === 'hunger') {
-      stats[stat] = Math.min(100, Math.max(0, stats[stat] + value));
-    } else {
-      stats[stat] = Math.max(0, stats[stat] + value);
+    if (value !== undefined) {
+      // 只要值有变化就显示特效（正负都显示）
+      showStatChange(stat, value);
+      
+      // 更新状态值
+      if (stat === 'health' || stat === 'hunger') {
+        stats[stat] = Math.min(100, Math.max(0, stats[stat] + value));
+      } else {
+        stats[stat] = Math.max(0, stats[stat] + value);
+      }
     }
   }
 
@@ -1678,8 +1678,8 @@ function updatePetStats(changes) {
   updateStatsUI();
 }
 
-// 飘升数字特效（传入属性名和增加值）
-function showStatIncrease(statName, amount) {
+// 飘升数字特效（传入属性名和变化值）
+function showStatChange(statName, amount) {
   // 根据属性名获取对应的状态项
   const statLabels = {
     health: '生命值',
@@ -1701,25 +1701,21 @@ function showStatIncrease(statName, amount) {
 
   if (!targetStatusItem) return;
 
-  // 不同属性的颜色设置
-  const colors = {
-    health: '#FF5555',    // 生命值红色
-    hunger: '#FFAA00',    // 饥饿度橙色
-    gold: '#FFD700',      // 金币金色
-    bond: '#55AAFF'       // 历练值蓝色
-  };
+  // 根据正负决定颜色
+  const color = amount >= 0 ? '#4CAF50' : '#F44336'; // 正数绿色，负数红色
+  const symbol = amount >= 0 ? '+' : ''; // 正数显示+号，负数自带-号
 
   // 创建飘升数字元素
   const floatText = document.createElement('div');
-  floatText.className = 'floating-increase';
-  floatText.textContent = `+${amount}`;
+  floatText.className = 'floating-change';
+  floatText.textContent = `${symbol}${amount}`;
 
   // 设置样式
   floatText.style.position = 'absolute';
   floatText.style.left = '110px';
   floatText.style.top = '0px';
-  floatText.style.color = colors[statName] || '#00AA00';
-  floatText.style.fontSize = '24px';
+  floatText.style.color = color;
+  floatText.style.fontSize = '18px';
   floatText.style.fontWeight = 'bold';
   floatText.style.textShadow = '0 0 3px rgba(0,0,0,0.5)';
   floatText.style.animation = 'floatUp 3s ease-out forwards';
@@ -1733,8 +1729,9 @@ function showStatIncrease(statName, amount) {
     floatText.remove();
   });
 
-  // 触发粒子效果
-  showStatParticles(targetStatusItem, colors[statName] || '#00AA00', 8);
+  // 触发粒子效果（数量根据变化幅度调整）
+  const particleCount = Math.min(Math.abs(Math.round(amount / 5)), 15);
+  showStatParticles(targetStatusItem, color, particleCount);
 }
 
 // 粒子动画函数
