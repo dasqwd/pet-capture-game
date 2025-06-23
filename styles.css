@@ -711,16 +711,16 @@ footer {
   }
 
   .status-wrapper {
-    top: 0px;
-    right: 0px;
-    transform: scale(0.85);
+    top: -10px !important;  /* 原为0px，增加5px下移（视觉上更靠近） */
+    right: -10px !important; /* 原为0px，增加5px左移 */
+    transform: scale(0.8); /* 原为0.85，缩小一点 */
     transform-origin: top right;
   }
 
   .status-container {
-    min-width: 240px !important;
-    padding: 10px 10px;
-    width: auto; /* 改为自动宽度 */
+    min-width: 220px !important; /* 原为240px，缩小一点 */
+    padding: 8px 12px !important; /* 原为10px 15px，减少内边距 */
+    border-radius: 10px !important; /* 原为12px，稍微减小 */
   }
 
   .status-row {
@@ -786,7 +786,8 @@ footer {
 
   .chat-header {
     position: relative;
-    padding: 20px 10px;
+    padding: 10px 10px !important; /* 原为20px 10px，减少垂直padding */
+    height: 60px !important; /* 新增固定高度（原为auto） */
     width: 100%;
     box-sizing: border-box;
     z-index: 2;
