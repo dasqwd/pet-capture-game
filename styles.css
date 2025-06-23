@@ -74,7 +74,7 @@ body {
 /* 新增包裹层控制左侧间距 */
 .status-wrapper {
     position: absolute;   /* ✅ 从布局流中浮出，不受 flex-column 影响 */
-    top: 0px;             /* 靠近顶部 */
+    top: -10px;             /* 靠近顶部 */
     right: 10px;           /* 靠右边留点边距 */
     z-index: 2;            /* 保证在上层 */
 }
@@ -701,7 +701,7 @@ footer {
 
   .pet-name {
     font-size: 1.2rem!important;
-    top: 0px!important;
+    top: 10px!important;
     left: 10px!important;
   }
 
