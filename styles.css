@@ -473,6 +473,7 @@ body {
     text-align: left;
 }
 
+/* 头像样式保持不变 */
 .avatar {
     width: 60px;
     height: 60px;
@@ -487,14 +488,17 @@ body {
     border: 2px solid rgba(255, 255, 255, 0.3);
 }
 
+/* 系统消息头像（紫色渐变） */
 .system .avatar {
     background: linear-gradient(135deg, #6a5acd, #9370db);
 }
 
+/* 用户消息头像（橙色渐变） */
 .user .avatar {
     background: linear-gradient(135deg, #ff7f50, #ffb347);
 }
 
+/* 消息内容通用样式 */
 .content {
     padding: 15px 20px;
     border-radius: 20px;
@@ -503,20 +507,34 @@ body {
     position: relative;
     max-width: 75%;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    color: white; /* 统一文字为白色 */
+    border: 1px solid rgba(255, 255, 255, 0.3); /* 半透明白边框 */
 }
 
+/* 系统消息框（深紫色） */
 .system .content {
-    background: rgba(106, 90, 205, 0.85);
-    border: 1px solid rgba(147, 112, 219, 0.5);
+    background: rgba(106, 90, 205, 0.9); /* 使用头像的浅紫色 */
+    border: 1px solid rgba(147, 112, 219, 0.7); /* 头像的第二种紫色作为边框 */
     border-top-left-radius: 0;
     margin-left: 10px;
+    color: white;
+    /* 小三角指示 */
+    &::before {
+        border-color: transparent rgba(106, 90, 205, 0.7) transparent transparent;
+    }
 }
 
+/* 用户消息框（深橙色） */
 .user .content {
-    background: rgb(255, 179, 71); /* 橙色背景，带透明度 */
-    border: 1px solid rgba(255, 165, 0, 0.5); /* 较亮的橙色边框 */
+    background: rgba(255, 127, 80, 0.9); /* 使用头像的浅橙色 */
+    border: 1px solid rgba(255, 179, 71, 0.7); /* 头像的第二种橙色作为边框 */
     border-top-right-radius: 0;
     margin-right: 10px;
+    color: white;
+    /* 小三角指示 */
+    &::before {
+        border-color: transparent transparent transparent rgba(255, 127, 80, 0.7);
+    }
 }
 
 .chat-input-area {
