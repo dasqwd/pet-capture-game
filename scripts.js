@@ -365,56 +365,64 @@ function updateChatBackground() {
     }
 
     const imagePath = `./pets/${bgPath}`;
-    console.log('[背景更新] 图片路径:', imagePath);
-
     const videoPath = imagePath.replace('.png', '-mv.mp4');
+
+    console.log('[背景更新] 图片路径:', imagePath);
     console.log('[背景更新] 视频路径:', videoPath);
 
-    // 设置背景图片作为初始显示
-    chatInterface.style.backgroundImage = `url("${imagePath}")`;
+    // ✅ 1. 先加载图片
+    const img = new Image();
+    img.src = imagePath;
+    img.onload = () => {
+      console.log('✅ 背景图片加载完成');
+      chatInterface.style.backgroundImage = `url("${imagePath}")`;
+      hideMessagesBackground(chatMessages);
 
-    // 创建视频元素
-    const video = document.createElement('video');
-    video.src = videoPath;
-    video.loop = true;
-    video.muted = true;
-    video.autoplay = true;
-    video.playsInline = true; // 防止移动端全屏
-    video.style.position = 'absolute';
-    video.style.top = '0';
-    video.style.left = '0';
-    video.style.width = '100%';
-    video.style.height = '100%';
-    video.style.objectFit = 'cover';
-    video.style.zIndex = '-1';
-    video.style.pointerEvents = 'none';
-    video.style.opacity = '0';
-    video.id = 'bg-video';
+      // ✅ 2. 然后加载视频
+      const video = document.createElement('video');
+      video.src = videoPath;
+      video.loop = true;
+      video.muted = true;
+      video.autoplay = true;
+      video.playsInline = true;
+      video.style.position = 'absolute';
+      video.style.top = '0';
+      video.style.left = '0';
+      video.style.width = '100%';
+      video.style.height = '100%';
+      video.style.objectFit = 'cover';
+      video.style.zIndex = '-1';
+      video.style.pointerEvents = 'none';
+      video.style.opacity = '0';
+      video.id = 'bg-video';
 
-    console.log('[背景更新] 开始加载视频...');
+      console.log('[背景更新] 开始加载视频...');
 
-    video.onloadeddata = () => {
-      console.log('✅ 视频加载完成，插入 DOM');
-      // 删除旧视频（如果存在）
-      const oldVideo = document.getElementById('bg-video');
-      if (oldVideo) oldVideo.remove();
+      video.onloadeddata = () => {
+        console.log('✅ 视频加载完成，插入 DOM');
+        const oldVideo = document.getElementById('bg-video');
+        if (oldVideo) oldVideo.remove();
+        chatInterface.appendChild(video);
+        setTimeout(() => {
+          video.style.opacity = '1';
+        }, 100);
+      };
 
-      // 插入新视频
-      chatInterface.appendChild(video);
-      // 渐现
-      setTimeout(() => {
-        video.style.opacity = '1';
-      }, 100);
+      video.onerror = () => {
+        console.warn('⚠️ 视频加载失败:', videoPath);
+      };
     };
 
-    video.onerror = (e) => {
-      console.warn('⚠️ 视频加载失败:', videoPath);
+    img.onerror = () => {
+      console.warn('❌ 背景图片加载失败:', imagePath);
+      chatInterface.style.backgroundImage = `url("./default-bg.jpg")`;
     };
 
   } catch (err) {
     console.error('❌ 更新背景出错:', err);
   }
 }
+
 
 // 辅助函数：设置背景样式
 function setBackground(element, imageUrl) {
@@ -513,7 +521,7 @@ function formatErrorResponse(error) {
 function addMessageToChat(role, content) {
     const messagesContainer = document.getElementById('messages');
     const messageDiv = document.createElement('div');
-    
+
     messageDiv.className = `message ${role}`;
     messageDiv.innerHTML = `
         <div class="avatar">
@@ -523,56 +531,98 @@ function addMessageToChat(role, content) {
             ${content}
         </div>
     `;
-    
+
     messagesContainer.appendChild(messageDiv);
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+    // 滚动的是外层 chat-content-wrapper，而不是 messages 本身
+    const wrapper = document.querySelector('.chat-content-wrapper');
+    if (wrapper) {
+        requestAnimationFrame(() => {
+            wrapper.scrollTop = wrapper.scrollHeight;
+        });
+    }
 }
 
 // 发送消息函数
 async function sendMessage(userContent, actionType = null) {
-    // 构建智能体提示词（包含状态上下文）
+  try {
+    console.log('🟢 发送消息 — 用户内容:', userContent);
     const prompt = buildCozePrompt(userContent, actionType);
-    
+    console.log('🟢 构建的 Prompt:', prompt);
+
     // 显示用户消息
     displayUserMessage(userContent, actionType);
-    
+
     // 显示加载状态
     const loadingId = showLoadingIndicator();
-    
-    try {
-        const aiResponse = await callCozeAPI(prompt, {
-            includePetState: true,
-            actionType: actionType
-        });
-        
-        document.getElementById(loadingId)?.remove();
-        processAIResponse(aiResponse, actionType);
-    } catch (error) {
-        handleSendError(error, loadingId);
-    }
+
+    const aiResponse = await callCozeAPI(prompt, {
+      includePetState: true,
+      actionType: actionType
+    });
+
+    console.log('🟢 AI接口原始返回:', aiResponse);
+
+    document.getElementById(loadingId)?.remove();
+
+    // 这里也可以加log，查看处理后的结果
+    const processed = processAIResponse(aiResponse, actionType);
+    console.log('🟢 处理后AI回复:', processed);
+
+  } catch (error) {
+    console.error('❌ 发送消息出错:', error);
+    handleSendError(error, loadingId);
+  }
 }
 
 // 提示词构建抽离
 function buildCozePrompt(userContent, actionType) {
+  // 简单的感情类关键词列表
+  const emotionKeywords = ['想我', '爱', '喜欢', '难过', '心情', '伤心', '孤单', '开心', '烦恼', '生气', '难受', '感情', '情绪', '恋爱', '感受'];
+
+  // 转小写方便匹配
+  const lowerContent = userContent.toLowerCase();
+
+  // 判断是否为感情类问题
+  const isEmotion = emotionKeywords.some(keyword => lowerContent.includes(keyword));
+
+  if (isEmotion) {
     return `[CONTEXT]
-宠物名称: ${gameState.pet.name}
-当前状态: 
-- 饥饿度: ${gameState.pet.stats.hunger}%
-- 心情: ${gameState.pet.mood}
-- 生命值: ${gameState.pet.stats.health}%
-行动类型: ${actionType || '普通聊天'}
-[/CONTEXT]
+    宠物名称: ${gameState.pet.name}
+    行动类型: ${actionType || '感情交流'}
+    [/CONTEXT]
 
-${userContent}
+    ${userContent}
 
-[INSTRUCTIONS]
-1. 请根据用户的问题进行主要答复
-2. 根据${actionType ? '动作类型' : '问题类型'}回应
-3. 必须包含1个肢体动作描述
-4. ${actionType ? '描述动作效果' : '添加相关反问'}
-5. 语气活泼带情感波动
-[/INSTRUCTIONS]`;
+    [INSTRUCTIONS]
+    1. 先直接且细腻地回答用户的问题，带有温暖和感情的表达，内容不少于3句。
+    2. 必须包含1个肢体动作描述（用括号表示）。
+    3. 不要包含宠物当前状态信息。
+    4. 最后添加一句感情类反问，鼓励用户继续分享感情相关的话题。
+    5. 语气温柔且富有情感波动。
+    [/INSTRUCTIONS]`;
+      } else {
+        return `[CONTEXT]
+    宠物名称: ${gameState.pet.name}
+    当前状态: 
+    - 饥饿度: ${gameState.pet.stats.hunger}%
+    - 心情: ${gameState.pet.mood}
+    - 生命值: ${gameState.pet.stats.health}%
+    行动类型: ${actionType || '普通聊天'}
+    [/CONTEXT]
+
+    ${userContent}
+
+    [INSTRUCTIONS]
+    1. 先细致、贴心地回答用户的问题，可包含轻微情绪波动与亲昵称呼，内容不少于2句。
+    2. 根据当前宠物状态，简洁表达自己的感受或现状。
+    3. 必须包含1个肢体动作描述（用括号表示）。
+    4. 最后添加一句引导用户的相关反问（可关于冒险、玩耍等）。
+    5. 语气活泼，带有情感波动。
+    [/INSTRUCTIONS]`;
+  }
 }
+
 
 // 用户消息显示抽离
 function displayUserMessage(content, isAction) {
@@ -710,10 +760,27 @@ function initGame() {
   const sendBtn = document.getElementById('send-btn');
   const userInput = document.getElementById('user-input');
   if (sendBtn && userInput) {
-    sendBtn.addEventListener('click', sendMessage);
-    userInput.addEventListener('keypress', function(e) {
-      if(e.key === 'Enter') sendMessage();
-    });
+    // ✅ 正确绑定发送逻辑
+    if (sendBtn && userInput) {
+      sendBtn.addEventListener('click', () => {
+        const content = userInput.value.trim();
+        if (content) {
+          sendMessage(content);
+          userInput.value = ''; // 清空输入框
+        }
+  });
+
+  userInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      const content = userInput.value.trim();
+      if (content) {
+        sendMessage(content);
+        userInput.value = '';
+      }
+    }
+  });
+}
+
   }
 
   // 根据状态显示正确步骤
