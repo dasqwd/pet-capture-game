@@ -387,7 +387,7 @@ body {
     background-attachment: fixed;
     background-position: center center;
     background-repeat: no-repeat;
-    background-size: cover;
+    background-size: 100% 100%; /* 强制图片填充整个容器 */
 }
 
 .pet-chat-container {
