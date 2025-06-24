@@ -121,7 +121,7 @@
             <!-- 步骤4：聊天界面 -->
             <div id="chat-interface" class="step-container">
                 <!-- 背景视频层 -->
-                <video id="background-video" class="background-video" autoplay loop muted playsinline></video>
+                <div id="background-video-placeholder"></div>
 
                 <!-- 顶部状态栏 -->
                 <div class="chat-header">
@@ -136,7 +136,7 @@
                             <!-- 第一行 -->
                             <div class="status-row">
                                 <div class="status-item">
-                                    <span class="status-label">饥饿度</span>
+                                    <span class="status-label">体力值</span>
                                     <div class="status-bar">
                                         <div class="status-fill hunger-fill" style="width: 80%;"></div>
                                         <span class="status-text hunger-text">80%</span>
@@ -153,7 +153,7 @@
                             <!-- 第二行 -->
                             <div class="status-row">
                                 <div class="status-item">
-                                    <span class="status-label">历练值</span>
+                                    <span class="status-label">历练</span>
                                     <span class="plain-value exp-value">99999</span>
                                 </div>
                                 <div class="status-item">
@@ -165,6 +165,8 @@
                     </div>
                 </div>
                 
+                <div class="background-gap"></div>
+
                 <!-- 中间聊天区域 -->
                 <div class="chat-content-wrapper">
                     <div class="chat-messages" id="messages">
