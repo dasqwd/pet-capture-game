@@ -381,7 +381,13 @@ body {
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.18);
-    overflow: hidden;   /* 防止背景溢出 */
+    overflow: hidden;
+
+    /* 新增固定背景 */
+    background-attachment: fixed;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: cover;
 }
 
 .pet-chat-container {
@@ -455,8 +461,8 @@ body {
 
 .chat-messages {
     flex-grow: 1;
-    width: 100%; /* 改为100%填充父容器 */
-    margin-left: 0; /* 移除负margin */
+    width: 100%;
+    margin-left: 0;
     margin-top: 120px;
     position: relative;
 }
