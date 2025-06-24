@@ -347,44 +347,38 @@ function updateChatBackground() {
   const imagePath = `./pets/${bgPath}`;
   const videoPath = imagePath.replace('.png', '-mv.mp4');
 
-  // 先加载图片
-  const img = new Image();
-  img.src = imagePath;
-  img.onload = () => {
-    chatInterface.style.backgroundImage = `url(${imagePath})`;
+  // 1. 设置背景图时强制覆盖整个容器
+  chatInterface.style.background = `url("${imagePath}") center/cover no-repeat`;
 
-    // 延迟加载视频
-    const video = document.createElement('video');
-    video.src = videoPath;
-    video.autoplay = true;
-    video.loop = true;
-    video.muted = true;
-    video.playsInline = true;
-    video.id = 'bg-video';
-    video.style.cssText = `
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      object-fit: cover;
-      z-index: -1;
-      opacity: 0;
-      transition: opacity 0.5s;
-      pointer-events: none;
-    `;
+  const oldVideo = document.getElementById('bg-video');
+  if (oldVideo) oldVideo.remove();
 
-    video.onloadeddata = () => {
-      chatInterface.appendChild(video);
-      requestAnimationFrame(() => {
-        video.style.opacity = '1';
-      });
-    };
+  const video = document.createElement('video');
+  video.src = videoPath;
+  video.autoplay = true;
+  video.loop = true;
+  video.muted = true;
+  video.playsInline = true;
+  video.id = 'bg-video';
+  video.style.cssText = `
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.5s ease-out;
+  `;
 
-    video.onerror = () => console.warn('❌ 视频加载失败:', videoPath);
+  // 2. 改用canplay事件确保视频可播放
+  video.oncanplay = () => {
+    chatInterface.appendChild(video);
+    // 3. 添加10ms微延迟确保渲染
+    setTimeout(() => video.style.opacity = '1', 10);
   };
 
-  img.onerror = () => console.warn('❌ 背景图加载失败:', imagePath);
+  video.onerror = () => console.warn('视频加载失败:', videoPath);
 }
-
 
 // 辅助函数：设置背景样式
 function setBackground(element, imageUrl) {
