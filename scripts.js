@@ -1965,14 +1965,14 @@ function getRandomStatChange(actionType) {
   // 基础行为配置（喂食/玩耍/休息）
   const BASE_BEHAVIORS = {
     feed: { 
-      hunger: [70, 80],   // 喂食恢复70-80点体力值
-      gold: [-2, -2]      // 固定扣除2金币
+      hunger: [40, 80],   // 喂食恢复40-80点体力值
+      gold: [-5, -5]      // 固定扣除5金币
     },
     play: { 
       hunger: [-20, -5]   // 玩耍消耗5-20点体力值
     }, 
     rest: { 
-      health: [35, 80],   // 休息恢复35-80点生命值
+      health: [35, 60],   // 休息恢复35-80点生命值
       gold: [-20, -20]    // 固定扣除20金币
     }
   };
@@ -2000,7 +2000,7 @@ function getRandomStatChange(actionType) {
 
     // BOSS战
     boss_fight: {
-      health: [-15, -5],  // 较大伤害
+      health: [-20, -5],  // 较大伤害
       gold: [10, 20],     // 更多奖励
       bond: [10, 20]      // 更多羁绊
     },
