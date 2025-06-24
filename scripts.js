@@ -24,7 +24,7 @@ const gameState = {
     
     // 动态状态
     stats: {
-      hunger: 20,     // 饥饿度（0-100%）
+      hunger: 20,     // 体力值（0-100%）
       health: 80,     // 生命值（0-100%）
       bond: 0,         // 历练值
       gold: 1000       // 金币（默认初始1000金币）
@@ -85,12 +85,12 @@ const gameState = {
 // 状态检测配置
 const STATUS_THRESHOLDS = {
   health: 20,  // 生命值≤20%时触发休息提醒
-  hunger: 30,    // 饥饿度≤30%时触发喂食提醒
+  hunger: 30,    // 体力值≤30%时触发喂食提醒
   // 新增冒险相关阈值
   minAdventureHealth: 30,  // 开始冒险最小生命值
-  minAdventureHunger: 20,  // 开始冒险最小饥饿度
+  minAdventureHunger: 20,  // 开始冒险最小体力值
   continueAdventureHealth: 10, // 继续冒险最小生命值
-  continueAdventureHunger: 0  // 继续冒险最小饥饿度
+  continueAdventureHunger: 0  // 继续冒险最小体力值
 };
 
 // 状态访问辅助函数
@@ -340,87 +340,49 @@ function showStep(stepId) {
 
 // 配套的updateChatBackground函数（增强版）
 function updateChatBackground() {
-  try {
-    const chatInterface = document.getElementById('chat-interface');
-    const chatMessages = document.querySelector('.chat-messages');
-    if (!chatInterface || !chatMessages) {
-      console.warn('❌ 找不到聊天界面元素');
-      return;
-    }
+  const chatInterface = document.getElementById('chat-interface');
+  if (!chatInterface || !gameState.pet?.type) return;
 
-    const petType = gameState.pet?.type || gameState.petType;
-    console.log('[背景更新] 当前宠物类型:', petType);
+  const bgPath = petBackgrounds[gameState.pet.type];
+  const imagePath = `./pets/${bgPath}`;
+  const videoPath = imagePath.replace('.png', '-mv.mp4');
 
-    if (!petType) {
-      console.warn('❌ 宠物类型未设置，使用默认背景');
-      setBackground(chatInterface, './default-bg.jpg');
-      hideMessagesBackground(chatMessages);
-      return;
-    }
+  // 先加载图片
+  const img = new Image();
+  img.src = imagePath;
+  img.onload = () => {
+    chatInterface.style.backgroundImage = `url(${imagePath})`;
 
-    const bgPath = petBackgrounds[petType];
-    if (!bgPath) {
-      console.warn(`❌ 未找到 ${petType} 对应的背景图`);
-      return;
-    }
+    // 延迟加载视频
+    const video = document.createElement('video');
+    video.src = videoPath;
+    video.autoplay = true;
+    video.loop = true;
+    video.muted = true;
+    video.playsInline = true;
+    video.id = 'bg-video';
+    video.style.cssText = `
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+      z-index: -1;
+      opacity: 0;
+      transition: opacity 0.5s;
+      pointer-events: none;
+    `;
 
-    const imagePath = `./pets/${bgPath}`;
-    const videoPath = imagePath.replace('.png', '-mv.mp4');
-
-    console.log('[背景更新] 图片路径:', imagePath);
-    console.log('[背景更新] 视频路径:', videoPath);
-
-    // ✅ 1. 先加载图片
-    const img = new Image();
-    img.src = imagePath;
-    img.onload = () => {
-      console.log('✅ 背景图片加载完成');
-      chatInterface.style.backgroundImage = `url("${imagePath}")`;
-      hideMessagesBackground(chatMessages);
-
-      // ✅ 2. 然后加载视频
-      const video = document.createElement('video');
-      video.src = videoPath;
-      video.loop = true;
-      video.muted = true;
-      video.autoplay = true;
-      video.playsInline = true;
-      video.style.position = 'absolute';
-      video.style.top = '0';
-      video.style.left = '0';
-      video.style.width = '100%';
-      video.style.height = '100%';
-      video.style.objectFit = 'cover';
-      video.style.zIndex = '-1';
-      video.style.pointerEvents = 'none';
-      video.style.opacity = '0';
-      video.id = 'bg-video';
-
-      console.log('[背景更新] 开始加载视频...');
-
-      video.onloadeddata = () => {
-        console.log('✅ 视频加载完成，插入 DOM');
-        const oldVideo = document.getElementById('bg-video');
-        if (oldVideo) oldVideo.remove();
-        chatInterface.appendChild(video);
-        setTimeout(() => {
-          video.style.opacity = '1';
-        }, 100);
-      };
-
-      video.onerror = () => {
-        console.warn('⚠️ 视频加载失败:', videoPath);
-      };
+    video.onloadeddata = () => {
+      chatInterface.appendChild(video);
+      requestAnimationFrame(() => {
+        video.style.opacity = '1';
+      });
     };
 
-    img.onerror = () => {
-      console.warn('❌ 背景图片加载失败:', imagePath);
-      chatInterface.style.backgroundImage = `url("./default-bg.jpg")`;
-    };
+    video.onerror = () => console.warn('❌ 视频加载失败:', videoPath);
+  };
 
-  } catch (err) {
-    console.error('❌ 更新背景出错:', err);
-  }
+  img.onerror = () => console.warn('❌ 背景图加载失败:', imagePath);
 }
 
 
@@ -524,9 +486,6 @@ function addMessageToChat(role, content) {
 
     messageDiv.className = `message ${role}`;
     messageDiv.innerHTML = `
-        <div class="avatar">
-            <i class="fas ${role === 'system' ? 'fa-dragon' : 'fa-user'}"></i>
-        </div>
         <div class="content">
             ${content}
         </div>
@@ -534,7 +493,6 @@ function addMessageToChat(role, content) {
 
     messagesContainer.appendChild(messageDiv);
 
-    // 滚动的是外层 chat-content-wrapper，而不是 messages 本身
     const wrapper = document.querySelector('.chat-content-wrapper');
     if (wrapper) {
         requestAnimationFrame(() => {
@@ -605,7 +563,7 @@ function buildCozePrompt(userContent, actionType) {
         return `[CONTEXT]
     宠物名称: ${gameState.pet.name}
     当前状态: 
-    - 饥饿度: ${gameState.pet.stats.hunger}%
+    - 体力值: ${gameState.pet.stats.hunger}%
     - 心情: ${gameState.pet.mood}
     - 生命值: ${gameState.pet.stats.health}%
     行动类型: ${actionType || '普通聊天'}
@@ -731,7 +689,7 @@ function initGame() {
       name: petName,
       type: petType, // 这里设置type
       stats: {
-        hunger: 20,     // 初始饥饿值
+        hunger: 20,     // 初始体力值
         health: 80,     // 初始生命值
         bond: 0,         // 初始历练值
         gold: 1000     // 初始金币
@@ -749,9 +707,11 @@ function initGame() {
       setTimeout(() => {
         gameState.currentStep = 'main-game';
         updateUI();
-        updateChatBackground();
-        showStep('chat-interface');
-        updateActionButtons(); // ✅ 让按钮显示而不是立即冒险
+        showStep('chat-interface');     // 先展示页面
+        updateActionButtons();
+
+        // ✅ 延迟加载背景（提升速度）
+        setTimeout(() => updateChatBackground(), 100);
       }, 500);
     });
   }
@@ -789,8 +749,12 @@ function initGame() {
     gameState.currentStep = 'main-game';
     updateUI();
     showStep('chat-interface');
-    updateActionButtons();  // ✅ 补充，确保按钮显示
-  } else {
+    updateActionButtons();
+
+    // ✅ 延迟加载背景
+    setTimeout(() => updateChatBackground(), 100);
+  }
+   else {
     console.log("新玩家，显示地域选择");
     showStep('region-selection');
   }
@@ -854,7 +818,7 @@ function updatePetNameDisplays(petName) {
 function updateStatsUI() {
   const stats = gameState.pet.stats;
 
-  // 饥饿度
+  // 体力值
   const hungerBar = document.querySelector('.hunger-fill');
   const hungerText = document.querySelector('.hunger-text');
   if (hungerBar && hungerText) {
@@ -884,7 +848,9 @@ function updateStatsUI() {
 }
 
 // 初始化
-window.addEventListener('DOMContentLoaded', initGame);
+document.addEventListener('DOMContentLoaded', () => {
+  initGame(); // 最小化内容加载后立刻执行游戏逻辑
+});
 
 // 开始冒险检测
 function startAdventure() {
@@ -896,7 +862,7 @@ function startAdventure() {
     return;
   }
   
-  // 饥饿度不足
+  // 体力值不足
   if (hunger <= STATUS_THRESHOLDS.minAdventureHunger) {
     triggerPetAlert('hunger', hunger);
     return;
@@ -1093,9 +1059,9 @@ const buttonConfig = {
         return;
       }
       
-      // 饥饿度不足
+      // 体力值不足
       if (hunger <= STATUS_THRESHOLDS.minAdventureHunger) {
-        addMessageToChat('system', `（肚子咕咕叫）饥饿度只剩${hunger}%了，先喂喂我吧...`);
+        addMessageToChat('system', `（肚子咕咕叫）体力值只剩${hunger}%了，先喂喂我吧...`);
         return;
       }
       
@@ -1612,7 +1578,7 @@ function checkCriticalStatus() {
   console.log("[checkCriticalStatus] 检查状态触发逻辑中...");
   const { health, hunger } = gameState.pet.stats;
 
-  console.log("当前生命值:", health, "当前饥饿度:", hunger);
+  console.log("当前生命值:", health, "当前体力值:", hunger);
 
   let triggered = false;
 
@@ -1633,17 +1599,17 @@ function checkCriticalStatus() {
     }
   }
 
-  // 饥饿度检测（带冷却控制）
+  // 体力值检测（带冷却控制）
   if (hunger <= STATUS_THRESHOLDS.hunger) {
     if (!gameState.alertCooldown.hunger) {
-      console.log("⚠️ 饥饿度过低，触发提醒！");
+      console.log("⚠️ 体力值过低，触发提醒！");
       triggerPetAlert('hunger', hunger);
       gameState.alertCooldown.hunger = true;
 
       // 设置5分钟冷却
       setTimeout(() => {
         gameState.alertCooldown.hunger = false;
-        console.log("✅ 饥饿提醒冷却结束");
+        console.log("✅ 体力提醒冷却结束");
       }, 5 * 60 * 1000);
       
       triggered = true;
@@ -1666,8 +1632,8 @@ function triggerPetAlert(type, currentValue) {
       `（走路摇摇晃晃）我感觉好累...生命值只有${currentValue}%了...`
     ],
     hunger: [
-      `（肚子咕咕叫）我已经饿得没力气了...饥饿度只剩${currentValue}%了...`,
-      `（咬着你的衣角）能不能给我点吃的？饥饿度只有${currentValue}%了...`
+      `（肚子咕咕叫）我已经饿得没力气了...体力值只剩${currentValue}%了...`,
+      `（咬着你的衣角）能不能给我点吃的？体力值只有${currentValue}%了...`
     ]
   };
 
@@ -1749,13 +1715,13 @@ function processAIResponse(response, actionType = null) {
 
     // ✅ 检查状态 + 刷新按钮
     setTimeout(() => {
-      checkCriticalStatus(); // 检查是否低血低饥饿提醒
+      checkCriticalStatus(); // 检查是否低血低体力提醒
       updateActionButtons(); // 刷新按钮状态
     }, 100);
   }
 }
 
-// 修改宠物状态值（如生命值、饥饿度、金币、历练值）
+// 修改宠物状态值（如生命值、体力值、金币、历练值）
 function updatePetStats(changes) {
   if (!gameState.pet) {
     console.error("游戏状态未初始化");
@@ -1791,7 +1757,7 @@ function showStatChange(statName, amount) {
   // 根据属性名获取对应的状态项
   const statLabels = {
     health: '生命值',
-    hunger: '饥饿度',
+    hunger: '体力值',
     gold: '金币',
     bond: '历练值'
   };
@@ -1942,7 +1908,7 @@ function buildStatusMessage(changes) {
         parts.push(`生命值${changes.health > 0 ? '+' : ''}${changes.health}`);
     }
     if (changes.hunger !== undefined && changes.hunger !== 0) {
-        parts.push(`饥饿度${changes.hunger > 0 ? '+' : ''}${changes.hunger}`);
+        parts.push(`体力值${changes.hunger > 0 ? '+' : ''}${changes.hunger}`);
     }
     if (changes.gold !== undefined && changes.gold !== 0) {
         parts.push(`金币${changes.gold > 0 ? '+' : ''}${changes.gold}`);
@@ -2005,11 +1971,11 @@ function getRandomStatChange(actionType) {
   // 基础行为配置（喂食/玩耍/休息）
   const BASE_BEHAVIORS = {
     feed: { 
-      hunger: [70, 80],   // 喂食恢复70-80点饥饿度
+      hunger: [70, 80],   // 喂食恢复70-80点体力值
       gold: [-2, -2]      // 固定扣除2金币
     },
     play: { 
-      hunger: [-20, -5]   // 玩耍消耗5-20点饥饿度
+      hunger: [-20, -5]   // 玩耍消耗5-20点体力值
     }, 
     rest: { 
       health: [35, 80],   // 休息恢复35-80点生命值
@@ -2021,7 +1987,7 @@ function getRandomStatChange(actionType) {
   const ADVENTURE_ACTIONS = {
     // 通用冒险消耗（所有冒险行为都会应用）
     _base: {
-      hunger: [-5, -1]    // 基础饥饿消耗
+      hunger: [-5, -1]    // 基础体力消耗
     },
     
     // 战斗类-正面战斗
