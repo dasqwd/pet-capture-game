@@ -415,7 +415,6 @@ body {
 
 /* 顶部状态栏 */
 .chat-header {
-    position: relative;
     height: 120px; /* 固定高度 */
     flex-shrink: 0; /* 禁止压缩 */
     z-index: 10;
@@ -426,39 +425,47 @@ body {
     backdrop-filter: blur(2px); /* 可选：添加毛玻璃效果 */
     border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* 可选：底部细分割线 */
 }
-
-/* 背景过渡空白层 */
-.background-gap {
-    height: 300px;             /* 你可以调整这个值，比如 60~100px */
-    flex-shrink: 0;           /* 不允许压缩 */
-    background: transparent;  /* 保持透明，透出背景图或视频 */
+/* 中间大容器，负责分配顶部空白+聊天区域 */
+.chat-main-area {
+    flex: 1;                   /* 占据剩余空间 */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;          /* 避免溢出破坏布局 */
+}
+/* 顶部与聊天框之间的空白占位区域 */
+.chat-gap {
+    flex-shrink: 1;
+    flex-grow: 1;
+    min-height: 200px;   /* ✅ 允许压缩，但不小于200px */
 }
 
 /* 中间聊天区域 */
 .chat-content-wrapper {
-    flex: 1;                   /* 关键1：占据剩余所有可用空间 */
-    width: 95%;                /* 内容宽度 */
-    min-height: 300px;         /* 最小高度保证 */
-    overflow-y: auto;          /* 关键2：垂直方向内容超出时显示滚动条 */
-    overflow-x: hidden;        /* 关键3：禁止水平滚动 */
-    padding: 10px;             /* 内边距 */
-    scrollbar-width: thin;     /* 滚动条细样式（Firefox） */
-    position: relative;        /* 创建相对定位上下文 */
+    flex-grow: 2;              /* 比 chat-gap 占用更多空间，可以调节比例 */
+    flex-shrink: 1;            /* 可被压缩 */
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 10px;
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    scrollbar-width: thin;
+    position: relative;
 }
 
 /* 底部固定区域 */
 .chat-bottom-fixed {
-    height: 150px;             /* 固定高度 */
-    flex-shrink: 0;            /* 禁止压缩 */
-    position: relative;        /* 创建相对定位上下文 */
-    bottom: 0;                /* 关键2：固定在底部 */
-    padding: 10px;             /* 内边距 */
-    z-index: 10;               /* 关键3：确保显示在最上层 */
-    
+    height: 150px;
+    flex-shrink: 0;
+    position: sticky;          /* 保持固定在底部 */
+    bottom: 0;
+    padding: 10px;
+    z-index: 10;
     display: flex;
     flex-direction: column;
-    justify-content: flex-end; /* 保证输入框永远贴底 */
+    justify-content: flex-end;
 }
+
 .chat-title {
     font-size: 2rem;
     font-weight: 600;
@@ -469,26 +476,38 @@ body {
 .chat-messages {
     flex-grow: 1;
     width: 100%;
-    margin-left: 0;
-    margin-top: 120px;
+    min-height: 100%;
     position: relative;
+    display: flex;
+    flex-direction: column;
 }
 
 .message {
     display: flex;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
     max-width: 100%;
 }
 
 .message.system {
-    align-self: flex-start;
-    text-align: left;
+  justify-content: flex-start;
+}
+
+.message.system .content {
+  background: rgba(106, 90, 205, 0.9);
+  border: 1px solid rgba(147, 112, 219, 0.7);
+  border-top-left-radius: 0;
+  margin-left: 10px;
 }
 
 .message.user {
-    align-self: flex-end;
-    flex-direction: row-reverse;
-    text-align: left;
+  justify-content: flex-end;
+}
+
+.message.user .content {
+  background: rgba(255, 127, 80, 0.9);
+  border: 1px solid rgba(255, 179, 71, 0.7);
+  border-top-right-radius: 0;
+  margin-right: 15px;
 }
 
 /* 头像样式保持不变 */
@@ -503,10 +522,14 @@ body {
     line-height: 1.6;
     font-size: 1.1rem;
     position: relative;
-    max-width: 75%;
+    color: white;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    color: white; /* 统一文字为白色 */
-    border: 1px solid rgba(255, 255, 255, 0.3); /* 半透明白边框 */
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    word-break: break-word;
+    white-space: normal;
+    text-align: left;
+    max-width: 75%;
+    min-width: 150px;
 }
 
 /* 系统消息框（深紫色） */
@@ -524,15 +547,15 @@ body {
 
 /* 用户消息框（深橙色） */
 .user .content {
-    background: rgba(255, 127, 80, 0.9); /* 使用头像的浅橙色 */
-    border: 1px solid rgba(255, 179, 71, 0.7); /* 头像的第二种橙色作为边框 */
+    background: rgba(255, 127, 80, 0.9);
+    border: 1px solid rgba(255, 179, 71, 0.7);
     border-top-right-radius: 0;
-    margin-right: 10px;
+    margin-right: 15px; /* 增加右边距 */
+    margin-left: auto; /* 确保右对齐 */
     color: white;
-    /* 小三角指示 */
-    &::before {
-        border-color: transparent transparent transparent rgba(255, 127, 80, 0.7);
-    }
+    text-align: left; /* 明确设置文本左对齐 */
+    width: fit-content; /* 根据内容自适应宽度 */
+    max-width: calc(100% - 30px); /* 考虑边距 */
 }
 
 .chat-input-area {
@@ -895,29 +918,46 @@ footer {
     padding: 10px 5px;
     border-radius: 10px;
   }
+  
+  /* 顶部与聊天框之间的空白占位区域 */
+  .chat-gap {
+    flex-shrink: 1;
+    flex-grow: 0;
+    min-height: 150px; /* 更小的留白高度 */
+  }
 
   .chat-header {
     position: relative;
-    padding: 10px 10px !important; /* 原为20px 10px，减少垂直padding */
-    height: 60px !important; /* 新增固定高度（原为auto） */
+    padding: 10px 10px !important;
+    height: 60px !important;
     width: 100%;
     box-sizing: border-box;
     z-index: 2;
   }
 
+  .chat-main-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
   .chat-content-wrapper {
-    width: 100% !important;
-    padding: 5px !important;
+    flex-grow: 1; /* 占据 chat-main-area 的剩余空间 */
+    overflow-y: auto !important;
     overflow-x: hidden !important;
+    padding: 5px !important;
+    width: 100% !important;
+    box-sizing: border-box;
+  }
+
+  /* 底部固定区域 */
+  .chat-bottom-fixed {
+      height: 120px;
   }
 
   .chat-messages {
     margin-top: 5px;
-  }
-
-  .chat-bottom-fixed {
-    height: auto;
-    padding: 8px;
   }
 
   .action-buttons-container {
