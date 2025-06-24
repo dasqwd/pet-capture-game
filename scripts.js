@@ -341,13 +341,16 @@ function showStep(stepId) {
 // 配套的updateChatBackground函数（增强版）
 function updateChatBackground() {
   const chatInterface = document.getElementById('chat-interface');
-  if (!chatInterface || !gameState.pet?.type) return;
+  if (!chatInterface || !gameState.pet || !gameState.pet.type) {
+    console.warn('[背景跳过] pet.type 未就绪，稍后重试');
+    setTimeout(updateChatBackground, 300); // 延迟重试一次
+    return;
+  }
 
   const bgPath = petBackgrounds[gameState.pet.type];
   const imagePath = `./pets/${bgPath}`;
   const videoPath = imagePath.replace('.png', '-mv.mp4');
 
-  // 1. 设置背景图时强制覆盖整个容器
   chatInterface.style.background = `url("${imagePath}") center/cover no-repeat`;
 
   const oldVideo = document.getElementById('bg-video');
@@ -370,15 +373,18 @@ function updateChatBackground() {
     transition: opacity 0.5s ease-out;
   `;
 
-  // 2. 改用canplay事件确保视频可播放
-  video.oncanplay = () => {
+  video.onloadeddata = () => {
     chatInterface.appendChild(video);
-    // 3. 添加10ms微延迟确保渲染
-    setTimeout(() => video.style.opacity = '1', 10);
+    video.play().then(() => {
+      setTimeout(() => video.style.opacity = '1', 10);
+    }).catch((err) => {
+      console.warn('⚠️ 视频播放失败:', err);
+    });
   };
 
-  video.onerror = () => console.warn('视频加载失败:', videoPath);
+  video.onerror = () => console.warn('❌ 视频加载失败:', videoPath);
 }
+
 
 // 辅助函数：设置背景样式
 function setBackground(element, imageUrl) {
