@@ -1131,7 +1131,7 @@ const buttonConfig = {
     id: 'feed-btn',
     text: '<i class="fas fa-utensils"></i> 喂食',
     className: 'action-button feed-btn',
-    condition: () => gameState.pet.stats.hunger < STATUS_THRESHOLDS.hunger, 
+    condition: () => gameState.pet.isAdventuring && gameState.pet.stats.health < 60,
     action: () => {
       sendMessage("（掏出食物）给你吃好吃的~", 'feed');
       hideAllButtons();
@@ -2065,8 +2065,8 @@ function getRandomStatChange(actionType) {
   // 基础行为配置（喂食/玩耍/休息）
   const BASE_BEHAVIORS = {
     feed: { 
-      hunger: [40, 80],   // 喂食恢复40-80点体力值
-      gold: [-5, -5]      // 固定扣除5金币
+      hunger: [20, 50],   // 喂食恢复20-50点体力值
+      gold: [-2, -5]      // 固定扣除5金币
     },
     play: { 
       hunger: [-20, -5]   // 玩耍消耗5-20点体力值
