@@ -343,7 +343,7 @@ function updateChatBackground() {
   const chatInterface = document.getElementById('chat-interface');
   if (!chatInterface || !gameState.pet || !gameState.pet.type) {
     console.warn('[背景跳过] pet.type 未就绪，稍后重试');
-    setTimeout(updateChatBackground, 300);
+    setTimeout(updateChatBackground, 100);
     return;
   }
 
