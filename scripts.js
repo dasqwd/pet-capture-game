@@ -343,7 +343,7 @@ function updateChatBackground() {
   const chatInterface = document.getElementById('chat-interface');
   if (!chatInterface || !gameState.pet || !gameState.pet.type) {
     console.warn('[背景跳过] pet.type 未就绪，稍后重试');
-    setTimeout(updateChatBackground, 300); // 延迟重试一次
+    setTimeout(updateChatBackground, 300);
     return;
   }
 
@@ -351,6 +351,7 @@ function updateChatBackground() {
   const imagePath = `./pets/${bgPath}`;
   const videoPath = imagePath.replace('.png', '-mv.mp4');
 
+  // 设置静态背景图
   chatInterface.style.background = `url("${imagePath}") center/cover no-repeat`;
 
   const oldVideo = document.getElementById('bg-video');
@@ -373,18 +374,35 @@ function updateChatBackground() {
     transition: opacity 0.5s ease-out;
   `;
 
+  // 移动端特殊处理
+  const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  
+  if (isMobile) {
+    // 添加触摸事件监听器
+    document.body.addEventListener('touchstart', function mobileVideoPlayHandler() {
+      video.play().catch(e => console.warn('移动端视频播放失败:', e));
+      document.body.removeEventListener('touchstart', mobileVideoPlayHandler);
+    }, { once: true });
+  }
+
+  // 更早添加到DOM
+  chatInterface.appendChild(video);
+
   video.onloadeddata = () => {
-    chatInterface.appendChild(video);
     video.play().then(() => {
       setTimeout(() => video.style.opacity = '1', 10);
     }).catch((err) => {
       console.warn('⚠️ 视频播放失败:', err);
+      // 失败时保持静态背景图
+      video.style.display = 'none';
     });
   };
 
-  video.onerror = () => console.warn('❌ 视频加载失败:', videoPath);
+  video.onerror = () => {
+    console.warn('❌ 视频加载失败:', videoPath);
+    video.style.display = 'none';
+  };
 }
-
 
 // 辅助函数：设置背景样式
 function setBackground(element, imageUrl) {
