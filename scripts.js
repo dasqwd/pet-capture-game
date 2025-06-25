@@ -1131,7 +1131,7 @@ const buttonConfig = {
     id: 'feed-btn',
     text: '<i class="fas fa-utensils"></i> 喂食',
     className: 'action-button feed-btn',
-    condition: () => gameState.pet.isAdventuring && gameState.pet.stats.health < 60,
+    condition: () => gameState.pet.stats.hunger < 60,
     action: () => {
       sendMessage("（掏出食物）给你吃好吃的~", 'feed');
       hideAllButtons();
