@@ -382,12 +382,21 @@ body {
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.18);
     overflow: hidden;
+    background-size: cover;
+    background-position: center;
+}
 
-    /* 新增固定背景 */
-    background-attachment: fixed;
-    background-position: center center;
-    background-repeat: no-repeat;
-    background-size: 100% 100%; /* 强制图片填充整个容器 */
+/* 视频背景层样式 */
+.background-video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+    pointer-events: none;
+    display: none; /* 初始隐藏，加载成功后显示 */
 }
 
 .pet-chat-container {
@@ -436,7 +445,7 @@ body {
 .chat-gap {
     flex-shrink: 1;
     flex-grow: 1;
-    min-height: 300px;   /* ✅ 允许压缩，但不小于200px */
+    min-height: 200px;   /* ✅ 允许压缩，但不小于200px */
 }
 
 /* 中间聊天区域 */
@@ -668,28 +677,6 @@ body {
 .action-button:active {
   transform: translateY(1px);
 }
-
-/* 视频背景层样式 */
-.background-video {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    z-index: 0;
-    pointer-events: none;
-    display: none; /* 初始隐藏，加载成功后显示 */
-}
-
-/* 确保 chat-interface 是定位容器 */
-#chat-interface {
-    position: relative;
-    overflow: hidden;
-    background-size: cover;
-    background-position: center;
-}
-
 
 /* 按钮动画 */
 @keyframes buttonAppear {
@@ -1054,6 +1041,10 @@ footer {
   .pet-description h3 {
     font-size: 1.2rem;
     margin-bottom: 10px;
+  }
+
+  .background-video {
+    display: block !important;
   }
 
   #chat-interface.step-container {
