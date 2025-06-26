@@ -357,9 +357,19 @@ function addExpToPet(amount) {
   updateStatsUI();
 
   if (upgraded) {
-  showLevelUpEffect(); // ✅ 显示升级特效
-  addMessageToChat('system', `🎉 太棒了，我升到了 Lv.${stats.level}！谢谢你的陪伴～`);
+    showLevelUpEffect();
+    addMessageToChat('system', `🎉 太棒了，我升到了 Lv.${stats.level}！谢谢你的陪伴～`);
+
+    // ✅ 启用宝箱按钮状态
+    const rewardBtn = document.getElementById('level-reward-btn');
+    if (rewardBtn) {
+      rewardBtn.classList.add('active'); // 加入闪烁动画类
+      rewardBtn.dataset.claimable = "true"; // 标记为可领取
+    }
   }
+
+  // ✅ 无论是否升级，都保存当前经验与等级
+  saveGameState();
 }
 
 // 显示指定步骤
@@ -923,7 +933,7 @@ function updateStatsUI() {
   // ✅ 等级文字
   const levelText = document.querySelector('.level-text');
   if (levelText) {
-    levelText.textContent = `宠物等级 Lv.${stats.level}`;
+    levelText.textContent = `灵宠 Lv.${stats.level}`;
   }
 
   // ✅ 等级经验条 + 中央经验值文字
@@ -944,6 +954,27 @@ function updateStatsUI() {
 // 初始化
 document.addEventListener('DOMContentLoaded', () => {
   initGame(); // 最小化内容加载后立刻执行游戏逻辑
+});
+
+//宝箱点击事件
+document.getElementById('level-reward-btn')?.addEventListener('click', () => {
+  const rewardBtn = document.getElementById('level-reward-btn');
+  if (rewardBtn.dataset.claimable === "true") {
+    const rewardAmount = gameState.pet.stats.level * 50;
+    gameState.pet.stats.gold += rewardAmount;
+
+    // 弹出提示
+    addMessageToChat('system', `🎁 恭喜领取 ${rewardAmount} 金币！`);
+    showStatChange('gold', rewardAmount);
+
+    // 更新状态
+    updateStatsUI();
+    saveGameState();
+
+    // 禁用按钮
+    rewardBtn.dataset.claimable = "false";
+    rewardBtn.classList.remove('active');
+  }
 });
 
 // 开始冒险检测
