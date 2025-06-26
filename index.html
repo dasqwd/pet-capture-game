@@ -167,10 +167,19 @@
 
                 <!-- ✅ 等级经验栏 -->
                 <div class="level-wrapper">
-                <span class="level-text" id="level-text">宠物等级 Lv.1</span>
+                <!-- 等级文本 -->
+                <span class="level-text" id="level-text">灵宠 Lv.1</span>
+
+                <!-- 等级经验条 -->
                 <div class="level-bar">
                     <div class="level-fill" id="level-fill" style="width: 30%;"></div>
                     <span class="level-exp-text" id="level-exp-text">0 / 999</span>
+                </div>
+
+                <!-- 等级奖励宝箱按钮（常驻） -->
+                <div class="level-reward-button" id="level-reward-btn" title="点击领取升级奖励" onclick="claimLevelReward()">
+                <img src="pets/baoxiang.png" alt="等级奖励" class="reward-icon" />
+                <div class="reward-text">等级奖励</div>
                 </div>
                 </div>
 
