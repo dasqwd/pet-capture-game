@@ -27,15 +27,14 @@ const gameState = {
       hunger: 20,     // 体力值（0-100%）
       health: 80,     // 生命值（0-100%）
       bond: 0,         // 羁绊值
-      gold: 1000       // 金币（默认初始1000金币）
+      gold: 1000,      // 金币（默认初始1000金币）
+      level: 1,        // 等级，从1开始
+      exp: 0           // 当前经验值（达到阈值后升级）
     },
     
     // 状态标志
     mood: "happy",    // happy/sad/excited等
     isAdventuring: false,
-    lastFedTime: null,
-    lastRestTime: null
-  
   },
   
   // 对话系统
@@ -81,6 +80,21 @@ const gameState = {
   }
   
 };
+
+// 等级表
+const levelExpTable = {
+  1: 20,
+  2: 50,
+  3: 100,
+  4: 200,
+  5: 300,
+  6: 450,
+  7: 600,
+  8: 800,
+  9: 1000,
+  10: 1200
+};
+const MAX_LEVEL = 10;
 
 // 状态检测配置
 const STATUS_THRESHOLDS = {
@@ -305,6 +319,38 @@ function increaseBond(points) {
   }
   
   updateStatsUI();
+}
+
+// 升级逻辑
+function addExpToPet(amount) {
+  const stats = gameState.pet.stats;
+
+  if (stats.level >= MAX_LEVEL) {
+    stats.exp = 0;
+    updateStatsUI();
+    console.log("🎖️ 已达到最高等级");
+    return;
+  }
+
+  stats.exp += amount;
+  let upgraded = false;
+
+  while (
+    stats.level < MAX_LEVEL &&
+    stats.exp >= levelExpTable[stats.level]
+  ) {
+    stats.exp -= levelExpTable[stats.level];
+    stats.level++;
+    upgraded = true;
+    console.log(`🎉 升级到 Lv.${stats.level}！`);
+  }
+
+  updateStatsUI();
+
+  if (upgraded) {
+  showLevelUpEffect(); // ✅ 显示升级特效
+  addMessageToChat('system', `🎉 太棒了，我升到了 Lv.${stats.level}！谢谢你的陪伴～`);
+  }
 }
 
 // 显示指定步骤
@@ -709,7 +755,9 @@ function initGame() {
         hunger: 20,     // 初始体力值
         health: 80,     // 初始生命值
         bond: 0,         // 初始羁绊值
-        gold: 1000     // 初始金币
+        gold: 1000,      // 初始金币
+        level: 1,        // 初始等级
+        exp: 0           // 初始经验
       },
       mood: "happy"
     };
@@ -861,6 +909,26 @@ function updateStatsUI() {
   const goldText = document.querySelector('.gold-value');
   if (goldText) {
     goldText.textContent = `${stats.gold ?? 0}`;
+  }
+
+  // ✅ 等级文字
+  const levelText = document.querySelector('.level-text');
+  if (levelText) {
+    levelText.textContent = `宠物等级 Lv.${stats.level}`;
+  }
+
+  // ✅ 等级经验条 + 中央经验值文字
+  const levelFill = document.querySelector('.level-fill');
+  const levelExpText = document.querySelector('.level-exp-text');
+  const maxExp = levelExpTable[stats.level] ?? 100; // 容错处理
+
+  if (levelFill) {
+    const percent = Math.min((stats.exp / maxExp) * 100, 100);
+    levelFill.style.width = `${percent}%`;
+  }
+
+  if (levelExpText) {
+    levelExpText.textContent = `${stats.exp} / ${maxExp}`;
   }
 }
 
@@ -1299,7 +1367,8 @@ const buttonConfig = {
         health: getRandomInRange(-20, -5),
         hunger: getRandomInRange(-5, 0),
         gold: 0,
-        bond: 0
+        bond: 0,
+        exp: 0
       };
 
       const round = gameState.bossBattle.currentRound;
@@ -1312,6 +1381,7 @@ const buttonConfig = {
       if (isFinal) {
         result.gold = Math.floor(getRandomInRange(20, 50) * gameState.bossBattle.rewardMultiplier);
         result.bond = Math.floor(getRandomInRange(10, 20) * gameState.bossBattle.rewardMultiplier);
+        result.exp = Math.floor(getRandomInRange(10, 30) * gameState.bossBattle.rewardMultiplier);
         prompt += `\n玩家成功击败了 ${bossName}！奖励金币：${result.gold}，羁绊值：${result.bond}。\n请用宠物语气描述胜利的心情和场面，不要重复说明数值变化。`;
       } else {
         prompt += `请用宠物语气描述当前战斗，并根据回合数判断BOSS此时状态，但不要在言语中提及回合字样。`;
@@ -1442,9 +1512,11 @@ function handleMysteryTaskComplete() {
   const times = gameState.mysteryTask.requiredRounds;
   const baseGold = getRandomInRange(30, 80);
   const baseBond = getRandomInRange(5, 10);
+  const baseExp = getRandomInRange(10, 20);
 
   const finalGold = Math.floor(baseGold * times);
   const finalBond = Math.floor(baseBond * times);
+  const finalExp = Math.floor(baseExp * times);
 
   // ✅ 清除任务状态
   gameState.mysteryTask = {
@@ -1457,12 +1529,13 @@ function handleMysteryTaskComplete() {
   const reward = {
     gold: finalGold,
     bond: finalBond,
+    exp: finalExp,
     hunger: 0,
     health: 0
   };
 
   // ✅ 状态更新
-  applyStatusChanges(reward, `恭喜你完成了本次的神秘任务，获得了 ${finalGold} 金币与 ${finalBond} 成就点！`);
+  applyStatusChanges(reward, `恭喜你完成了本次的神秘任务，获得了 ${finalGold} 金币， ${finalBond} 羁绊点与 ${finalBond}点经验 ！`);
 }
 
 // 更新操作按钮
@@ -1661,7 +1734,7 @@ function checkPetStatus() {
 
 // 综合状态检测
 function checkCriticalStatus() {
-  console.log("[checkCriticalStatus] 状态检查中... 来源:", gameState.lastAction || '未知');
+  console.log("[checkCriticalStatus] 状态检查中...");
   
   const { health, hunger } = gameState.pet.stats;
   const ALERT_COOLDOWN_MS = 5 * 60 * 1000;
@@ -1835,58 +1908,75 @@ function updatePetStats(changes) {
 
 // 飘升数字特效（传入属性名和变化值）
 function showStatChange(statName, amount) {
-  // 根据属性名获取对应的状态项
   const statLabels = {
     health: '生命值',
     hunger: '体力值',
     gold: '金币',
-    bond: '羁绊值'
+    bond: '羁绊值',
+    exp: '经验值'
   };
-  
+
+  const symbol = amount >= 0 ? '+' : '';
+  const color = amount >= 0 ? '#4CAF50' : '#F44336';
+
   const statusItems = document.querySelectorAll('.status-item');
   let targetStatusItem = null;
-  
-  for (const item of statusItems) {
-    const label = item.querySelector('.status-label');
-    if (label && label.textContent.includes(statLabels[statName])) {
-      targetStatusItem = item;
-      break;
+
+  if (statName === 'exp') {
+    const levelBar = document.querySelector('.level-bar');
+    if (levelBar) {
+      targetStatusItem = levelBar;
+      targetStatusItem.style.position = 'relative';
+    }
+  } else {
+    for (const item of statusItems) {
+      const label = item.querySelector('.status-label');
+      if (label && label.textContent.includes(statLabels[statName])) {
+        targetStatusItem = item;
+        break;
+      }
     }
   }
 
   if (!targetStatusItem) return;
 
-  // 根据正负决定颜色
-  const color = amount >= 0 ? '#4CAF50' : '#F44336'; // 正数绿色，负数红色
-  const symbol = amount >= 0 ? '+' : ''; // 正数显示+号，负数自带-号
-
-  // 创建飘升数字元素
   const floatText = document.createElement('div');
   floatText.className = 'floating-change';
   floatText.textContent = `${symbol}${amount}`;
-
-  // 设置样式
   floatText.style.position = 'absolute';
-  floatText.style.left = '110px';
-  floatText.style.top = '0px';
   floatText.style.color = color;
   floatText.style.fontSize = '18px';
   floatText.style.fontWeight = 'bold';
   floatText.style.textShadow = '0 0 3px rgba(0,0,0,0.5)';
   floatText.style.animation = 'floatUp 3s ease-out forwards';
 
-  // 确保父容器有相对定位
-  targetStatusItem.style.position = 'relative';
+  if (statName === 'exp') {
+    floatText.style.top = '-24px';
+    floatText.style.left = '50%';
+    floatText.style.transform = 'translateX(-50%)';
+  } else {
+    floatText.style.top = '0px';
+    floatText.style.left = '110px';
+  }
+
   targetStatusItem.appendChild(floatText);
+  floatText.addEventListener('animationend', () => floatText.remove());
 
-  // 动画结束自动移除
-  floatText.addEventListener('animationend', () => {
-    floatText.remove();
-  });
-
-  // 触发粒子效果（数量根据变化幅度调整）
   const particleCount = Math.min(Math.abs(Math.round(amount / 5)), 15);
   showStatParticles(targetStatusItem, color, particleCount);
+}
+
+//升级特效
+function showLevelUpEffect() {
+  const effect = document.createElement('div');
+  effect.className = 'level-up-effect';
+  effect.textContent = '恭喜升级 ↑';
+
+  document.body.appendChild(effect);
+
+  effect.addEventListener('animationend', () => {
+    effect.remove();
+  });
 }
 
 // 粒子动画函数
@@ -1945,6 +2035,7 @@ function calculateChanges(actionType, response) {
       hunger: 100 - gameState.pet.stats.hunger, // 补满饥饿
       gold: 0,
       bond: 0,
+      exp: 0,
       mood: 0
     };
   }
@@ -1968,23 +2059,40 @@ function calculateChanges(actionType, response) {
 function applyStatusChanges(changes, response, suppressCheck = false) {
     console.log('🔸[applyStatusChanges] 输入 changes:', changes);
 
+    // 提取经验值
+    let expGained = 0;
+    if ('exp' in changes) {
+      expGained = changes.exp;
+      delete changes.exp; // 避免误入 updatePetStats
+    }
+
     // 过滤掉0值变化
     const filteredChanges = {};
     Object.keys(changes).forEach(key => {
-        if (changes[key] !== 0) filteredChanges[key] = changes[key];
+        if (changes[key] !== 0 && key !== 'exp') filteredChanges[key] = changes[key];
     });
 
     // 应用状态变化
     updatePetStats(filteredChanges);
 
+    // 组合状态变化用于文本显示，exp单独加回来
+    const changesForText = {...filteredChanges};
+    if (expGained !== 0) {
+      changesForText.exp = expGained;
+    }
+
+    // 处理经验（单独处理，负责升级 + UI）
+    if (expGained > 0) {
+      addExpToPet(expGained); // 这里会调用 updateStatsUI
+    }
+
     // 显示文本（清理过的或原始）
     let displayText = response.trim();
 
     // 如果有状态变化，换行显示状态提示
-    if (Object.keys(filteredChanges).length > 0) {
-        const statusMsg = buildStatusMessage(filteredChanges);
+    if (Object.keys(changesForText).length > 0) {
+        const statusMsg = buildStatusMessage(changesForText);
         if (statusMsg) {
-            // 换行拼接状态变化，方便显示
             displayText = `${displayText}\n${statusMsg}`;
         }
     }
@@ -2011,6 +2119,9 @@ function buildStatusMessage(changes) {
     if (changes.bond !== undefined && changes.bond !== 0) {
         parts.push(`羁绊值${changes.bond > 0 ? '+' : ''}${changes.bond}`);
     }
+    if (changes.exp !== undefined && changes.exp !== 0) {
+        parts.push(`经验值${changes.exp > 0 ? '+' : ''}${changes.exp}`);
+    }
     return parts.length ? `（状态变化：${parts.join('，')}）` : null;
 }
 
@@ -2025,6 +2136,7 @@ function buildResultSummary(result) {
   if (result.health > 0) parts.push(`恢复了 ${result.health} 点生命`);
   if (result.hunger > 0) parts.push(`恢复了 ${result.hunger} 点体力`);
   if (result.gold < 0) parts.push(`损失了 ${-result.gold} 枚金币`);
+  if (result.exp > 0) parts.push(`获得了 ${-result.exp} 点经验`);
   
   return parts.join('，');
 }
@@ -2088,14 +2200,16 @@ function getRandomStatChange(actionType) {
     battle_attack: {
       health: [-10, -3],  // 可能受伤
       gold: [1, 10],      // 获得1-10金币
-      bond: [1, 5]        // 增加1-5羁绊值
+      bond: [1, 5],         // 增加1-5羁绊值
+      exp: [1, 5]        // 增加1-5经验
     },
 
     // 战斗类-偷袭
     battle_trick: {
       health: [-5, 0],    // 较少受伤
       gold: [1, 10],
-      bond: [1, 5]
+      bond: [1, 5],
+      exp: [1, 5]        // 增加1-5经验
     },
 
     // BOSS战
@@ -2115,7 +2229,8 @@ function getRandomStatChange(actionType) {
     treasure_open: {
       gold: [5, 20],      // 获得5-20金币
       health: [-10, 10],  // 可能受伤或恢复
-      hunger: [-15, 20]   // 消耗或恢复体力
+      hunger: [-15, 20],  // 消耗或恢复体力
+      exp: [5, 10]      // 增加1-5经验
     },
 
     // 分岔路口
@@ -2135,7 +2250,7 @@ function getRandomStatChange(actionType) {
 
     // 默认冒险行为
     default: {
-      bond: [1, 5]  // 基础羁绊增长
+      hunger: [-5, -1],  // 消耗或恢复体力
     }
   };
 
@@ -2169,6 +2284,7 @@ function getRandomStatChange(actionType) {
     if (actionConfig.gold) changes.gold += getRandomInRange(...actionConfig.gold);
     if (actionConfig.bond) changes.bond += getRandomInRange(...actionConfig.bond);
     if (actionConfig.hunger) changes.hunger += getRandomInRange(...actionConfig.hunger);
+    if (actionConfig.exp) changes.exp = getRandomInRange(...actionConfig.exp);
 
     console.log(`生成的${actionType}状态变化:`, changes);
     return changes;
@@ -2192,3 +2308,34 @@ function weightedRandom(items) {
   // fallback，理论不会走到这
   return items[items.length - 1].key;
 }
+
+function autoScaleSections() {
+  const baseHeight = 900; // 设计基准高度
+  const isMobile = window.innerWidth <= 768; // 判断是否为移动设备
+
+  const scale = Math.min(1, window.innerHeight / baseHeight);
+
+  const region = document.getElementById('region-selection');
+  const discovery = document.getElementById('pet-discovery');
+
+  if (isMobile) {
+    // 移动端：移除缩放，恢复原始布局
+    if (region) region.style.transform = 'none';
+    if (discovery) discovery.style.transform = 'none';
+    if (region) region.style.transformOrigin = '';
+    if (discovery) discovery.style.transformOrigin = '';
+  } else {
+    // 桌面端：缩放居中
+    if (region) {
+      region.style.transform = `scale(${scale})`;
+      region.style.transformOrigin = 'top center';
+    }
+    if (discovery) {
+      discovery.style.transform = `scale(${scale})`;
+      discovery.style.transformOrigin = 'top center';
+    }
+  }
+}
+
+window.addEventListener('load', autoScaleSections);
+window.addEventListener('resize', autoScaleSections);
