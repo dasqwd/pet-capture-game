@@ -781,7 +781,7 @@ footer {
     padding: 15px 0;
 }
 
-/* 飘升数字动画 */
+/* ========== 1. 飘字动画（通用） ========== */
 @keyframes floatUpFadeOut {
   0% {
     opacity: 1;
@@ -793,80 +793,30 @@ footer {
   }
 }
 
-.floating-increase {
+.floating-change {
   position: absolute;
-  color: #4caf50; /* 绿色 */
-  font-weight: 700;
-  font-size: 1.5rem;
+  font-size: 18px;
+  font-weight: bold;
   pointer-events: none;
   user-select: none;
-  animation: floatUpFadeOut 1s ease forwards;
   z-index: 999;
+  text-shadow: 0 0 3px rgba(0,0,0,0.5);
+  animation: floatUpFadeOut 1.5s ease-out forwards;
 }
 
-/* 粒子样式 */
-.particle {
-  position: absolute;
-  width: 10px;
-  height: 10px;
-  background: #ff9800; /* 橙色 */
-  border-radius: 50%;
-  opacity: 1;
-  animation: particleFloat 1s ease forwards;
-  pointer-events: none;
-  user-select: none;
-  z-index: 998;
-}
-
-/* 粒子飘浮和缩小 */
-@keyframes particleFloat {
-  0% {
-    opacity: 1;
-    transform: translate(0, 0) scale(1);
-  }
-  100% {
-    opacity: 0;
-    transform: translate(var(--x, 0px), -40px) scale(0.3);
-  }
-}
-
-@keyframes floatUp {
-  0% {
-    transform: translateY(0);
-    opacity: 1;
-  }
-  70% {
-    opacity: 1;
-  }
-  100% {
-    transform: translateY(-50px);
-    opacity: 0;
-  }
-}
-
-@keyframes particleMove {
-  0% {
-    transform: translate(0, 0);
-    opacity: 0.8;
-  }
-  100% {
-    transform: translate(var(--end-x), var(--end-y));
-    opacity: 0;
-  }
-}
-
+/* ========== 2. 升级特效 ========== */
 .level-up-effect {
   position: fixed;
   top: 40%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 48px;
+  font-size: 36px;
   font-weight: bold;
-  color: #FFD700; /* 金色 */
-  text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
-  animation: levelUpAnimation 2.5s ease-out forwards;
-  z-index: 9999;
+  color: #ffd700;
+  text-shadow: 0 0 6px #ff9900;
   pointer-events: none;
+  z-index: 9999;
+  animation: levelUpAnimation 2s ease-out forwards;
 }
 
 @keyframes levelUpAnimation {
@@ -884,7 +834,31 @@ footer {
   }
   100% {
     opacity: 0;
-    transform: translate(-50%, -80%) scale(0.9);
+    transform: translate(-50%, -90%) scale(1.2);
+  }
+}
+
+/* ========== 3. 粒子动画 ========== */
+.particle {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: #ff9800;
+  border-radius: 50%;
+  pointer-events: none;
+  user-select: none;
+  z-index: 998;
+  animation: particleFloat 1s ease forwards;
+}
+
+@keyframes particleFloat {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--x, 0px), -40px) scale(0.3);
   }
 }
 
