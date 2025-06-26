@@ -98,8 +98,8 @@ const MAX_LEVEL = 10;
 
 // 状态检测配置
 const STATUS_THRESHOLDS = {
-  health: 20,  // 生命值≤20%时触发休息提醒
-  hunger: 20,    // 体力值≤30%时触发喂食提醒
+  health: 30,  // 生命值≤20%时触发休息提醒
+  hunger: 30,    // 体力值≤30%时触发喂食提醒
   // 新增冒险相关阈值
   minAdventureHealth: 30,  // 开始冒险最小生命值
   minAdventureHunger: 20,  // 开始冒险最小体力值
@@ -122,7 +122,8 @@ function saveGameState() {
   try {
     localStorage.setItem('gameState', JSON.stringify({
       pet: gameState.pet,
-      conversationId: gameState.conversationId
+      conversationId: gameState.conversationId,
+      // 可以添加其他需要持久化的状态
     }));
   } catch (e) {
     console.error("保存状态失败:", e);
@@ -135,16 +136,24 @@ function loadGameState() {
     const saved = localStorage.getItem('gameState');
     if (saved) {
       const parsed = JSON.parse(saved);
-      Object.assign(gameState.pet, parsed.pet);
-      gameState.conversationId = parsed.conversationId || generateConversationId();
+
+      // 确保gameState.pet存在但不覆盖已有数据
+      gameState.pet = gameState.pet || {};
       
-      // 强制重置冒险状态
+      // 深度合并pet对象
       if (parsed.pet) {
-        gameState.pet = parsed.pet;
-        gameState.pet.isAdventuring = false;
-        gameState.pet.lastFedTime = null; // 可选：同时重置其他计时器
+        // 保留现有stats（如果有）
+        const currentStats = gameState.pet.stats || {};
+        // 合并pet对象
+        Object.assign(gameState.pet, parsed.pet);
+        // 确保stats被正确合并
+        if (parsed.pet.stats) {
+          Object.assign(currentStats, parsed.pet.stats);
+          gameState.pet.stats = currentStats;
+        }
       }
-      // ✅ 加载完毕后立即刷新背景
+
+      gameState.conversationId = parsed.conversationId || generateConversationId();
       updateChatBackground();
     }
   } catch (e) {
@@ -1912,65 +1921,69 @@ function showStatChange(statName, amount) {
     health: '生命值',
     hunger: '体力值',
     gold: '金币',
-    bond: '羁绊值',
+    bond: '羁绊',
     exp: '经验值'
   };
 
   const symbol = amount >= 0 ? '+' : '';
   const color = amount >= 0 ? '#4CAF50' : '#F44336';
 
-  const statusItems = document.querySelectorAll('.status-item');
-  let targetStatusItem = null;
+  let target = null;
 
   if (statName === 'exp') {
-    const levelBar = document.querySelector('.level-bar');
-    if (levelBar) {
-      targetStatusItem = levelBar;
-      targetStatusItem.style.position = 'relative';
-    }
+    target = document.querySelector('.level-bar');
   } else {
+    const statusItems = document.querySelectorAll('.status-item');
     for (const item of statusItems) {
       const label = item.querySelector('.status-label');
       if (label && label.textContent.includes(statLabels[statName])) {
-        targetStatusItem = item;
+        target = item;
         break;
       }
     }
   }
 
-  if (!targetStatusItem) return;
+  if (!target) return;
+
+  if (getComputedStyle(target).position === 'static') {
+    target.style.position = 'relative';
+  }
 
   const floatText = document.createElement('div');
   floatText.className = 'floating-change';
-  floatText.textContent = `${symbol}${amount}`;
+  floatText.textContent = `${statLabels[statName]} ${symbol}${amount}`;
   floatText.style.position = 'absolute';
   floatText.style.color = color;
   floatText.style.fontSize = '18px';
   floatText.style.fontWeight = 'bold';
+  floatText.style.pointerEvents = 'none';
   floatText.style.textShadow = '0 0 3px rgba(0,0,0,0.5)';
-  floatText.style.animation = 'floatUp 3s ease-out forwards';
+  floatText.style.animation = 'floatUpFadeOut 1.5s ease-out forwards';
+  floatText.style.pointerEvents = 'none';
 
   if (statName === 'exp') {
     floatText.style.top = '-24px';
     floatText.style.left = '50%';
     floatText.style.transform = 'translateX(-50%)';
   } else {
-    floatText.style.top = '0px';
-    floatText.style.left = '110px';
+    floatText.style.top = '-5px';
+    floatText.style.right = '-10px';
   }
 
-  targetStatusItem.appendChild(floatText);
+  target.appendChild(floatText);
   floatText.addEventListener('animationend', () => floatText.remove());
 
   const particleCount = Math.min(Math.abs(Math.round(amount / 5)), 15);
-  showStatParticles(targetStatusItem, color, particleCount);
+  showStatParticles(target, color, particleCount);
 }
+
+
 
 //升级特效
 function showLevelUpEffect() {
   const effect = document.createElement('div');
   effect.className = 'level-up-effect';
-  effect.textContent = '恭喜升级 ↑';
+  effect.textContent = '✨ 等级提升 ↑';
 
   document.body.appendChild(effect);
 
@@ -1981,31 +1994,34 @@ function showLevelUpEffect() {
 
 // 粒子动画函数
 function showStatParticles(parentEl, color, count = 8) {
+  // 确保父容器是相对定位
+  if (getComputedStyle(parentEl).position === 'static') {
+    parentEl.style.position = 'relative';
+  }
+
   for (let i = 0; i < count; i++) {
     const particle = document.createElement('div');
     particle.className = 'particle';
-    particle.style.position = 'absolute';
-    particle.style.width = '6px';
-    particle.style.height = '6px';
     particle.style.backgroundColor = color;
-    particle.style.borderRadius = '50%';
-    particle.style.left = '110px';
-    particle.style.top = '10px';
-    particle.style.animation = `particleMove ${Math.random() * 0.5 + 0.5}s ease-out forwards`;
-    particle.style.opacity = '0.8';
 
-    // 随机动画参数
+    // 设置动画时间和延迟
+    const duration = Math.random() * 0.5 + 0.5;
+    particle.style.animation = `particleFloat ${duration}s ease-out forwards`;
+
+    // 随机方向
     const angle = Math.random() * Math.PI * 2;
     const distance = Math.random() * 30 + 20;
-    particle.style.setProperty('--end-x', `${Math.cos(angle) * distance}px`);
-    particle.style.setProperty('--end-y', `${Math.sin(angle) * distance}px`);
+    particle.style.setProperty('--x', `${Math.cos(angle) * distance}px`);
+
+    // 顶部中心偏移
+    particle.style.left = '50%';
+    particle.style.top = '10px';
+    particle.style.transform = 'translateX(-50%)';
 
     parentEl.appendChild(particle);
 
-    // 动画完成自动移除
-    particle.addEventListener('animationend', () => {
-      particle.remove();
-    });
+    // 动画完成后自动清除
+    particle.addEventListener('animationend', () => particle.remove());
   }
 }
 
