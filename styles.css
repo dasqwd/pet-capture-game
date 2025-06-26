@@ -198,8 +198,9 @@ body {
 }
 
 /* 地域选择界面 */
-#region-selection {
-    display: block;
+#region-selection, #pet-discovery {
+  transform-origin: top center;
+  transition: transform 0.3s ease;
 }
 
 .step-title {
@@ -725,6 +726,52 @@ body {
     100% { opacity: 0.2; }
 }
 
+/* 新增等级+经验进度条 */
+.level-wrapper {
+  display: flex;
+  align-items: center;
+  margin: 6px 10px 0 10px;  /* 顶部留白 + 左右对齐状态栏 */
+  height: 28px;
+}
+
+.level-text {
+  font-size: 1.1rem;
+  font-weight: bold;
+  margin-right: 8px;
+  color: #ffcc00; /* 深一点的金色 */
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.5); /* 提升可读性 */
+}
+
+.level-bar {
+  flex: 1;
+  background-color: rgba(46, 46, 46, 0.7);
+  border-radius: 10px;
+  height: 14px;
+  overflow: hidden;
+  position: relative;
+  border: 1.5px solid rgba(255, 204, 0, 0.6);
+}
+
+.level-fill {
+  background: linear-gradient(to right, #b8860b, #ffd700); /* 深金到金黄 */
+  height: 100%;
+  width: 0%;
+  transition: width 0.4s ease;
+  border-radius: 10px 0 0 10px;
+}
+
+.level-exp-text {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  color: #fff;
+  font-size: 11px;
+  font-weight: bold;
+  text-shadow: 0 0 2px #000;
+  pointer-events: none;
+}
+
 /* 页脚 */
 footer {
     display: flex;
@@ -808,12 +855,51 @@ footer {
   }
 }
 
+.level-up-effect {
+  position: fixed;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 48px;
+  font-weight: bold;
+  color: #FFD700; /* 金色 */
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+  animation: levelUpAnimation 2.5s ease-out forwards;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+@keyframes levelUpAnimation {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(-50%, -60%) scale(1.1);
+  }
+  80% {
+    opacity: 1;
+    transform: translate(-50%, -70%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -80%) scale(0.9);
+  }
+}
+
 @media screen and (max-width: 768px) {
   html, body {
     overflow: hidden; /* ✅ 禁止整个页面滚动 */
     touch-action: none; /* ✅ 防止 iOS 上滑动页面 */
     margin: 0;
     padding: 0;
+  }
+
+  #region-selection,
+  #pet-discovery {
+    transform: none !important;
+    transform-origin: unset !important;
   }
 
   .container {
