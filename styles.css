@@ -730,16 +730,22 @@ body {
 .level-wrapper {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   margin: 6px 10px 0 10px;  /* 顶部留白 + 左右对齐状态栏 */
-  height: 28px;
+  position: relative;  
+  height: 40px;
+  gap: 10px;
 }
 
 .level-text {
   font-size: 1.1rem;
   font-weight: bold;
   margin-right: 8px;
-  color: #ffcc00; /* 深一点的金色 */
-  text-shadow: 1px 1px 2px rgba(0,0,0,0.5); /* 提升可读性 */
+  color: #ffcc00;
+  white-space: nowrap;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.5), rgba(0,0,0,0.7));
 }
 
 .level-bar {
@@ -771,6 +777,52 @@ body {
   text-shadow: 0 0 2px #000;
   pointer-events: none;
 }
+
+/* 等级奖励区域样式 */
+.level-reward-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  width: 60px;
+  z-index: 10; /* 提高层级，防止被遮挡 */
+  margin-left: 10px;
+}
+
+.reward-icon {
+  width: 70px;
+  height: 70px;
+  object-fit: contain;
+  z-index: 10;
+}
+
+.reward-text {
+  font-size: 12px;
+  color: #ffcc00;
+  margin-top: -8px;
+  font-weight: bold;
+  text-shadow: none; /* 去除文字阴影 */
+}
+
+@keyframes pulseGlow {
+  0% {
+    box-shadow: 0 0 0px rgba(255, 215, 0, 0.5);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(255, 215, 0, 1);
+    transform: scale(1.05);
+  }
+  100% {
+    box-shadow: 0 0 0px rgba(255, 215, 0, 0.5);
+    transform: scale(1);
+  }
+}
+
+.level-reward-button.active {
+  animation: pulseGlow 1.5s infinite;
+}
+
 
 /* 页脚 */
 footer {
