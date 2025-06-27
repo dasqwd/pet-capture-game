@@ -125,10 +125,15 @@
 
                 <!-- 顶部状态栏 -->
                 <div class="chat-header">
+                <!-- 宠物名称 + 属性详情按钮整合 -->
+                <div class="pet-name-block">
                     <div class="pet-name">
-                        <i class="fas fa-paw"></i>
-                        <span id="pet-name-display">未命名灵宠</span>
+                    <i class="fas fa-paw"></i>
+                    <span id="pet-name-display">未命名灵宠</span>
                     </div>
+                    <!-- 属性详情按钮 -->
+                    <div class="pet-info-button" onclick="showPetStats()">属性详情</div>
+                </div>
 
                     <!-- 状态容器 -->
                     <div class="status-wrapper">
@@ -167,26 +172,39 @@
 
                 <!-- ✅ 等级经验栏 -->
                 <div class="level-wrapper">
-                <!-- 等级文本 -->
-                <span class="level-text" id="level-text">灵宠 Lv.1</span>
+                    <!-- 等级文本 -->
+                    <span class="level-text" id="level-text">灵宠 Lv.1</span>
 
-                <!-- 等级经验条 -->
-                <div class="level-bar">
-                    <div class="level-fill" id="level-fill" style="width: 30%;"></div>
-                    <span class="level-exp-text" id="level-exp-text">0 / 999</span>
-                </div>
+                    <!-- 等级经验条 -->
+                    <div class="level-bar">
+                        <div class="level-fill" id="level-fill" style="width: 30%;"></div>
+                        <span class="level-exp-text" id="level-exp-text">0 / 999</span>
+                    </div>
 
-                <!-- 等级奖励宝箱按钮（常驻） -->
-                <div class="level-reward-button" id="level-reward-btn" title="点击领取升级奖励" onclick="claimLevelReward()">
-                <img src="pets/baoxiang.png" alt="等级奖励" class="reward-icon" />
-                <div class="reward-text">等级奖励</div>
-                </div>
+                    <!-- 等级奖励宝箱按钮（常驻） -->
+                    <div class="level-reward-button" id="level-reward-btn" onclick="claimLevelReward()">
+                        <img src="pets/baoxiang.png" alt="等级奖励" class="reward-icon" />
+                        <div class="reward-text">等级奖励</div>
+                    </div>
                 </div>
 
                 <!-- 中部：空白 + 聊天内容 -->
                 <div class="chat-main-area">
                     <!-- 空白占位区域 -->
-                    <div class="chat-gap"></div>
+                    <div class="chat-gap">
+                        <div class="side-button-group">
+                            <button class="side-button locked" onclick="openCompetition()">
+                                <div class="unlock-label">暂未开放</div>
+                                <img src="pets/baoxiang.png" class="side-icon" />
+                                <div class="side-label">灵宠竞赛</div>
+                            </button>
+                            <button class="side-button locked" onclick="openHome()">
+                                <div class="unlock-label">暂未开放</div>
+                                <img src="pets/baoxiang.png" class="side-icon" />
+                                <div class="side-label">灵宠家园</div>
+                            </button>
+                        </div>
+                    </div>
 
                     <!-- 聊天内容区域 -->
                     <div class="chat-content-wrapper">
