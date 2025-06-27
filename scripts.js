@@ -960,7 +960,7 @@ document.addEventListener('DOMContentLoaded', () => {
 document.getElementById('level-reward-btn')?.addEventListener('click', () => {
   const rewardBtn = document.getElementById('level-reward-btn');
   if (rewardBtn.dataset.claimable === "true") {
-    const rewardAmount = gameState.pet.stats.level * 50;
+    const rewardAmount = gameState.pet.stats.level * 500;
     gameState.pet.stats.gold += rewardAmount;
 
     // 弹出提示
@@ -2386,3 +2386,20 @@ function autoScaleSections() {
 
 window.addEventListener('load', autoScaleSections);
 window.addEventListener('resize', autoScaleSections);
+
+function showPetStats() {
+  alert("打开属性详情界面");
+}
+
+function openCompetition() {
+  alert("功能正在研发中");
+}
+
+function openHome() {
+  alert("功能正在研发中");
+}
+
+function claimLevelReward() {
+  const rewardAmount = gameState.pet.stats.level * 500;
+  alert(`奖励：${rewardAmount} 金币`);
+}
