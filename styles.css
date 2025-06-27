@@ -62,7 +62,7 @@ body {
     display: flex;
     align-items: center;
     position: relative; /* 启用相对定位 */
-    top: 35px; /* 向上移动10像素 */
+    top: 30px; /* 向上移动10像素 */
     left: 30px; /* 向右移动20像素 */
 }
 
@@ -749,7 +749,9 @@ body {
 }
 
 .level-bar {
-  flex: 1;
+  flex: 1 1 auto;             /* 允许自适应填满空间 */
+  min-width: 180px;           /* 设置最小宽度防止太短 */
+  margin-right: -40px;         /* ⬅️ 与宝箱按钮拉开一点间距 */
   background-color: rgba(46, 46, 46, 0.7);
   border-radius: 10px;
   height: 14px;
@@ -797,11 +799,16 @@ body {
 }
 
 .reward-text {
+  background-color: rgba(0, 0, 0, 0.5);        /* 半透明黑底 */
+  color:  #ffcc00;                             /* 橘黄色 */
   font-size: 12px;
-  color: #ffcc00;
-  margin-top: -8px;
   font-weight: bold;
-  text-shadow: none; /* 去除文字阴影 */
+  padding: 2px 6px;
+  border-radius: 6px;
+  margin-top: -26px;
+  pointer-events: none;
+  z-index: 11;
+  text-shadow: 0 0 2px #000;
 }
 
 @keyframes pulseGlow {
@@ -823,6 +830,112 @@ body {
   animation: pulseGlow 1.5s infinite;
 }
 
+/* 属性名称的父级 */
+.pet-name-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* 保持左对齐整体 */
+}
+
+/* 属性详情按钮样式 */
+.pet-info-button {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #ffd700;
+  font-size: 12px;
+  padding: 4px 10px;
+  margin-top: 30px;
+  margin-left: 36px; /* ✅ 调整这个数值实现水平偏移 */
+  border-radius: 8px;
+  font-weight: bold;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  display: inline-block;
+  cursor: pointer;
+}
+
+/* 右侧按钮组容器 */
+.side-button-group {
+  position: absolute;
+  top: 224px;
+  right: 46px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0px;
+  z-index: 10;
+}
+
+/* 通用按钮样式 */
+.side-button {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  isolation: isolate; /* ✅ 确保子元素可以不被父级 filter 影响 */
+}
+
+/* 统一置灰效果（影响图标与文字） */
+.side-button.locked .side-icon,
+.side-button.locked .side-label {
+  filter: grayscale(100%) brightness(0.6);
+}
+
+/* 上方“未解锁”标签 */
+.unlock-label {
+  position: absolute;
+  top: 20px;
+  font-size: 12px;
+  color: #ff5555; /* 更醒目 */
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-weight: bold;
+  z-index: 20;
+  pointer-events: none;
+
+  /* 保持颜色不受父级灰度影响 */
+  filter: none !important;
+  mix-blend-mode: normal;
+
+  /* ✅ 添加描边效果（黑色边框） */
+  text-shadow:
+    -1px -1px 1px #000,
+     1px -1px 1px #000,
+    -1px  1px 1px #000,
+     1px  1px 1px #000;
+}
+
+/* 图标样式 */
+.side-icon {
+  width: 70px;
+  height: 70px;
+  object-fit: contain;
+  z-index: 5;
+}
+
+/* 按钮文字 */
+.side-label {
+  position: absolute;
+  bottom: 4px;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: #ffcc00;
+  font-size: 12px;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 6px;
+  pointer-events: none;
+  z-index: 6;
+  text-shadow: 0 0 2px #000;
+}
+
+/* 悬浮放大效果 */
+.side-button:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  transform: scale(1.05);
+}
 
 /* 页脚 */
 footer {
@@ -935,7 +1048,7 @@ footer {
 
   .pet-name {
     font-size: 1.2rem!important;
-    top: 7px!important;
+    top: -2px!important;
     left: 10px!important;
   }
 
@@ -1202,5 +1315,20 @@ footer {
 
   .chat-title {
     font-size: 1.5rem;
+  }
+  
+  .pet-info-button {
+    margin-top: -1px;      /* 调整垂直间距，往下移一点 */
+    margin-left: 2px;     /* 调整水平位置，适配屏幕宽度 */
+    font-size: 11px;       /* 小屏文字稍微小一点 */
+    padding: 3px 8px;      /* 缩小按钮大小 */
+    transform: scale(0.95);/* 缩小整体大小避免遮挡 */
+  }
+
+  .side-button-group {
+    top: 120px;     /* ✅ 向上或向下微调 */
+    right: 6px;    /* ✅ 向左或向右微调 */
+    gap: 0px;      /* ✅ 调整两个按钮之间的间距 */
+    transform: scale(0.9);  /* ✅ 可选：按钮整体缩小一点 */
   }
 }
